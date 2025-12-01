@@ -1,4 +1,4 @@
-package com.funcapp4nal2
+package com.ihealth.nal2.api.caller
 
 import android.Manifest
 import android.content.ClipData
@@ -18,8 +18,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.funcapp4nal2.server.HttpServer
-import com.funcapp4nal2.utils.GlobalVariables
+import com.ihealth.nal2.api.caller.server.HttpServer
+import com.ihealth.nal2.api.caller.utils.GlobalVariables
 import com.google.gson.GsonBuilder
 import java.io.File
 import java.text.SimpleDateFormat

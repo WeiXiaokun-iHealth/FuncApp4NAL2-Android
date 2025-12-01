@@ -177,10 +177,18 @@ public class Nal2Manager {
         NativeManager.getInstance(context).setBWC(channels, crossoverFrequencies);
     }
 
-    public void setCompressionThreshold(double[] ct, int bandWidth, int selection, int WBCT, int haType, int direction,
+    public double[] setCompressionThreshold(double[] ct, int bandWidth, int selection, int WBCT, int haType,
+            int direction,
             int mic, int[] calcChArray) {
-        NativeManager.getInstance(context).CompressionThreshold_NL2(ct, bandWidth, selection, WBCT, haType, direction,
-                mic, calcChArray);
+        try {
+            OutputResult result = NativeManager.getInstance(context).CompressionThreshold_NL2(ct, bandWidth, selection,
+                    WBCT, haType, direction,
+                    mic, calcChArray);
+            return getOutputData(result, ct);
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "设置压缩阈值失败: " + e.getMessage());
+            return ct;
+        }
     }
 
     public double[] getMPO(double[] mpo, int type, double[] acDouble, double[] bcDouble, int channels, int limiting) {

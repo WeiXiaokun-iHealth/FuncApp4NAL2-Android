@@ -54,18 +54,19 @@ echo ""
 # 显示菜单
 echo -e "${BLUE}请选择操作:${NC}"
 echo "  1) 构建并安装Debug版本 (推荐)"
-echo "  2) 构建并安装Release版本"
-echo "  3) 仅构建Debug APK"
-echo "  4) 仅构建Release APK"
-echo "  5) 清理项目"
-echo "  6) 清理并重新构建"
-echo "  7) 启动应用"
-echo "  8) 查看日志"
-echo "  9) 卸载应用"
+echo "  2) 快速构建安装 (./gradlew assembleDebug && installDebug)"
+echo "  3) 构建并安装Release版本"
+echo "  4) 仅构建Debug APK"
+echo "  5) 仅构建Release APK"
+echo "  6) 清理项目"
+echo "  7) 清理并重新构建"
+echo "  8) 启动应用"
+echo "  9) 查看日志"
+echo "  10) 卸载应用"
 echo "  0) 退出"
 echo ""
 
-read -p "请输入选项 [1-9/0]: " choice
+read -p "请输入选项 [0-10]: " choice
 
 case $choice in
     1)
@@ -84,7 +85,7 @@ case $choice in
         read -p "是否立即启动应用? [Y/n]: " launch
         if [ "$launch" != "n" ] && [ "$launch" != "N" ]; then
             echo -e "${BLUE}🚀 启动应用...${NC}"
-            adb shell am start -n com.funcapp4nal2/.MainActivity
+            adb shell am start -n com.ihealth.nal2.api.caller/.MainActivity
             echo ""
             echo -e "${GREEN}✅ 应用已启动${NC}"
             echo ""
@@ -100,6 +101,18 @@ case $choice in
         
     2)
         echo ""
+        echo -e "${BLUE}🚀 快速构建安装 (您常用的命令)${NC}"
+        ./gradlew assembleDebug && ./gradlew installDebug
+        
+        echo ""
+        echo -e "${GREEN}✅ 构建和安装完成！${NC}"
+        ;;
+        
+    3)
+        echo ""
+        echo -e "${BLUE}📦 递增版本号...${NC}"
+        ./increment-version.sh
+        
         echo -e "${BLUE}🔨 构建Release版本...${NC}"
         ./gradlew assembleRelease
         
@@ -111,9 +124,14 @@ case $choice in
         echo -e "${GREEN}✅ 应用安装成功！${NC}"
         echo ""
         echo -e "${YELLOW}APK位置: app/build/outputs/apk/release/app-release.apk${NC}"
+        
+        # 自动打开 APK 所在文件夹
+        echo ""
+        echo -e "${BLUE}📂 打开 APK 文件夹...${NC}"
+        open app/build/outputs/apk/release
         ;;
         
-    3)
+    4)
         echo ""
         echo -e "${BLUE}🔨 构建Debug APK...${NC}"
         ./gradlew assembleDebug
@@ -123,17 +141,25 @@ case $choice in
         echo -e "${YELLOW}APK位置: app/build/outputs/apk/debug/app-debug.apk${NC}"
         ;;
         
-    4)
+    5)
         echo ""
+        echo -e "${BLUE}📦 递增版本号...${NC}"
+        ./increment-version.sh
+        
         echo -e "${BLUE}🔨 构建Release APK...${NC}"
         ./gradlew assembleRelease
         
         echo ""
         echo -e "${GREEN}✅ 构建完成！${NC}"
         echo -e "${YELLOW}APK位置: app/build/outputs/apk/release/app-release.apk${NC}"
+        
+        # 自动打开 APK 所在文件夹
+        echo ""
+        echo -e "${BLUE}📂 打开 APK 文件夹...${NC}"
+        open app/build/outputs/apk/release
         ;;
         
-    5)
+    6)
         echo ""
         echo -e "${BLUE}🧹 清理项目...${NC}"
         ./gradlew clean
@@ -142,7 +168,7 @@ case $choice in
         echo -e "${GREEN}✅ 清理完成！${NC}"
         ;;
         
-    6)
+    7)
         echo ""
         echo -e "${BLUE}🧹 清理项目...${NC}"
         ./gradlew clean
@@ -159,10 +185,10 @@ case $choice in
         echo -e "${GREEN}✅ 清理并重新构建完成！${NC}"
         ;;
         
-    7)
+    8)
         echo ""
         echo -e "${BLUE}🚀 启动应用...${NC}"
-        adb shell am start -n com.funcapp4nal2/.MainActivity
+        adb shell am start -n com.ihealth.nal2.api.caller/.MainActivity
         
         echo ""
         echo -e "${GREEN}✅ 应用已启动${NC}"
@@ -176,17 +202,17 @@ case $choice in
         fi
         ;;
         
-    8)
+    9)
         echo ""
         echo -e "${BLUE}📋 显示应用日志 (Ctrl+C 退出)...${NC}"
         echo ""
         adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
         ;;
         
-    9)
+    10)
         echo ""
         echo -e "${BLUE}🗑️  卸载应用...${NC}"
-        adb uninstall com.funcapp4nal2
+        adb uninstall com.ihealth.nal2.api.caller
         
         echo ""
         echo -e "${GREEN}✅ 应用已卸载${NC}"

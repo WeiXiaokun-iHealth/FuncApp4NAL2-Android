@@ -1,5 +1,5 @@
 
-package com.funcapp4nal2.nal2
+package com.ihealth.nal2.api.caller.nal2
 
 import android.content.Context
 import android.util.Log
@@ -7,11 +7,14 @@ import com.nal2.Nal2Manager as Nal2ManagerSDK
 
 /**
  * NAL2管理器 - 单例模式
- * 封装NAL2 SDK的所有功能
+ * 封装NAL2 SDK的所有功能，并提供详细的日志记录
  */
 class Nal2Manager private constructor(context: Context) {
 
     private val nal2SDK = Nal2ManagerSDK.getInstance(context)
+    
+    // 日志回调
+    var onLog: ((type: String, message: String) -> Unit)? = null
     
     companion object {
         private const val TAG = "Nal2Manager"
@@ -25,6 +28,56 @@ class Nal2Manager private constructor(context: Context) {
             }
         }
     }
+    
+    // ==================== 日志辅助函数 ====================
+    
+    /**
+     * 记录函数调用日志
+     */
+    private fun logFunctionCall(functionName: String, params: Map<String, Any?> = emptyMap()) {
+        val paramsStr = if (params.isEmpty()) {
+            ""
+        } else {
+            params.entries.joinToString(", ") { (key, value) ->
+                "$key=${formatValue(value)}"
+            }
+        }
+        val message = "调用: $functionName${if (paramsStr.isNotEmpty()) "($paramsStr)" else "()"}"
+        Log.d(TAG, message)
+        onLog?.invoke("DEBUG", message)
+    }
+    
+    /**
+     * 记录函数返回日志
+     */
+    private fun logFunctionReturn(functionName: String, result: Any?) {
+        val message = "返回: $functionName -> ${formatValue(result)}"
+        Log.d(TAG, message)
+        onLog?.invoke("DEBUG", message)
+    }
+    
+    /**
+     * 记录错误日志
+     */
+    private fun logError(functionName: String, error: Throwable) {
+        val message = "错误: $functionName - ${error.message}"
+        Log.e(TAG, message, error)
+        onLog?.invoke("ERROR", message)
+    }
+    
+    /**
+     * 格式化值用于日志输出
+     */
+    private fun formatValue(value: Any?): String {
+        return when (value) {
+            null -> "null"
+            is DoubleArray -> "[${value.take(3).joinToString(", ") { "%.2f".format(it) }}${if (value.size > 3) "... (${value.size}项)" else ""}]"
+            is IntArray -> "[${value.take(3).joinToString(", ")}${if (value.size > 3) "... (${value.size}项)" else ""}]"
+            is Double -> "%.2f".format(value)
+            is String -> "\"$value\""
+            else -> value.toString()
+        }
+    }
 
     // ==================== 基础函数 ====================
     
@@ -33,7 +86,15 @@ class Nal2Manager private constructor(context: Context) {
      * @return IntArray [major, minor]
      */
     fun getDllVersion(): IntArray {
-        return nal2SDK.dllVersion
+        return try {
+            logFunctionCall("getDllVersion")
+            val result = nal2SDK.dllVersion
+            logFunctionReturn("getDllVersion", result)
+            result
+        } catch (e: Exception) {
+            logError("getDllVersion", e)
+            throw e
+        }
     }
 
     // ==================== 增益计算函数 ====================
@@ -89,7 +150,7 @@ class Nal2Manager private constructor(context: Context) {
         channels: Int,
         direction: Int,
         mic: Int,
-        target: Int,
+            target: Int,
         aidType: Int,
         acOther: DoubleArray,
         noOfAids: Int,
@@ -143,7 +204,19 @@ class Nal2Manager private constructor(context: Context) {
         bc: DoubleArray,
         freqInCh: IntArray
     ): Nal2ManagerSDK.CrossOverFrequenciesResult {
-        return nal2SDK.getCrossOverFrequencies(cfArr, channels, ac, bc, freqInCh)
+        return try {
+            logFunctionCall("getCrossOverFrequencies", mapOf(
+                "channels" to channels,
+                "ac" to ac,
+                "bc" to bc
+            ))
+            val result = nal2SDK.getCrossOverFrequencies(cfArr, channels, ac, bc, freqInCh)
+            logFunctionReturn("getCrossOverFrequencies", "CFArray=${formatValue(result.CFArray)}, FreqInCh=${formatValue(result.FreqInCh)}")
+            result
+        } catch (e: Exception) {
+            logError("getCrossOverFrequencies", e)
+            throw e
+        }
     }
 
     /**
@@ -174,10 +247,26 @@ class Nal2Manager private constructor(context: Context) {
         direction: Int,
         mic: Int,
         calcCh: IntArray
-    ) {
-        nal2SDK.setCompressionThreshold(
-            ct, bandwidth, selection, WBCT, aidType, direction, mic, calcCh
-        )
+    ): DoubleArray {
+        return try {
+            logFunctionCall("setCompressionThreshold", mapOf(
+                "ct" to ct,
+                "bandwidth" to bandwidth,
+                "selection" to selection,
+                "WBCT" to WBCT,
+                "aidType" to aidType,
+                "direction" to direction,
+                "mic" to mic
+            ))
+            val result = nal2SDK.setCompressionThreshold(
+                ct, bandwidth, selection, WBCT, aidType, direction, mic, calcCh
+            )
+            logFunctionReturn("setCompressionThreshold", result)
+            result
+        } catch (e: Exception) {
+            logError("setCompressionThreshold", e)
+            throw e
+        }
     }
 
     /**

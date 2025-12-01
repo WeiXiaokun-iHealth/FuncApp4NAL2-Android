@@ -1,9 +1,9 @@
-package com.funcapp4nal2.server
+package com.ihealth.nal2.api.caller.server
 
 import android.content.Context
 import android.util.Log
-import com.funcapp4nal2.nal2.Nal2Manager
-import com.funcapp4nal2.utils.GlobalVariables
+import com.ihealth.nal2.api.caller.nal2.Nal2Manager
+import com.ihealth.nal2.api.caller.utils.GlobalVariables
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
@@ -17,6 +17,13 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
     var onRequestReceived: ((String) -> Unit)? = null
     var onResponseSent: ((String) -> Unit)? = null
     var onLog: ((String, String) -> Unit)? = null
+    
+    init {
+        // 连接 Nal2Manager 的日志到 HttpServer 的日志系统
+        nal2Manager.onLog = { type, message ->
+            onLog?.invoke(type, message)
+        }
+    }
     
     companion object {
         private const val TAG = "HttpServer"
@@ -181,6 +188,29 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
             return result
         }
         
+        // 打印所有输入参数
+        try {
+            val paramsLog = StringBuilder("📥 NAL2参数: function=$functionName")
+            params.entrySet().forEach { (key, value) ->
+                val formattedValue = when {
+                    value.isJsonArray -> {
+                        val array = value.asJsonArray
+                        if (array.size() > 3) {
+                            "[${array[0]}, ${array[1]}, ${array[2]}, ... (${array.size()}项)]"
+                        } else {
+                            value.toString()
+                        }
+                    }
+                    value.isJsonPrimitive -> value.asString
+                    else -> value.toString()
+                }
+                paramsLog.append(", $key=$formattedValue")
+            }
+            onLog?.invoke("DEBUG", paramsLog.toString())
+        } catch (e: Exception) {
+            onLog?.invoke("DEBUG", "📥 NAL2参数: function=$functionName (参数解析失败)")
+        }
+        
         try {
             when (functionName) {
                 "dllVersion" -> {
@@ -210,11 +240,27 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "CenterFrequencies" -> {
                     val channels = params.get("channels").asInt
+                    
+                    // 获取全局 CFArray 或使用参数中的 CFArray
+                    val globalCFArray = GlobalVariables.getCFArray()
                     val cfArray = if (params.has("CFArray")) {
                         jsonArrayToDoubleArray(params.getAsJsonArray("CFArray"))
+                    } else if (globalCFArray.isNotEmpty()) {
+                        globalCFArray
                     } else {
                         DoubleArray(0)
                     }
+                    
+                    // 打印使用的 CFArray
+                    val cfArrayStr = if (cfArray.size > 3) {
+                        "[${cfArray[0]}, ${cfArray[1]}, ${cfArray[2]}, ... (${cfArray.size}项)]"
+                    } else if (cfArray.isNotEmpty()) {
+                        cfArray.joinToString(", ", "[", "]")
+                    } else {
+                        "[]"
+                    }
+                    onLog?.invoke("DEBUG", "🔧 使用CFArray: $cfArrayStr (来源: ${if (params.has("CFArray")) "参数" else if (globalCFArray.isNotEmpty()) "全局变量" else "空"})")
+
                     val centreF = nal2Manager.getCenterFrequencies(channels, cfArray)
                     result.add("centreF", intArrayToJsonArray(centreF))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: CenterFrequencies完成")
@@ -224,23 +270,36 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val ct = DoubleArray(19)
                     val bandwidth = params.get("bandWidth")?.asInt ?: params.get("bandwidth")?.asInt ?: 0
                     val selection = params.get("selection")?.asInt ?: 0
+                    val WBCT = params.get("WBCT")?.asInt ?: 0
+                    val aidType = params.get("aidType")?.asInt ?: 0
+                    val direction = params.get("direction")?.asInt ?: 0
+                    val mic = params.get("mic")?.asInt ?: 0
                     val calcCh = jsonArrayToIntArray(params.getAsJsonArray("calcCh"))
                     
-                    nal2Manager.setCompressionThreshold(
+                    onLog?.invoke("DEBUG", "🔧 调用前CT: ${ct.take(3).joinToString(", ")}")
+                    val ctResult = nal2Manager.setCompressionThreshold(
                         ct,
                         bandwidth,
                         selection,
-                        params.get("WBCT")?.asInt ?: 0,
-                        params.get("aidType")?.asInt ?: 0,
-                        params.get("direction")?.asInt ?: 0,
-                        params.get("mic")?.asInt ?: 0,
+                        WBCT,
+                        aidType,
+                        direction,
+                        mic,
                         calcCh
                     )
                     
-                    // 自动保存到全局变量
-                    GlobalVariables.setCT(ct)
+                    // 打印调用后的 CT 值
+                    val ctStr = if (ctResult.size > 3) {
+                        "[${ctResult[0]}, ${ctResult[1]}, ${ctResult[2]}, ... (${ctResult.size}项)]"
+                    } else {
+                        ctResult.joinToString(", ", "[", "]")
+                    }
+                    onLog?.invoke("DEBUG", "🔧 调用后CT: $ctStr")
                     
-                    result.add("CT", doubleArrayToJsonArray(ct))
+                    // 自动保存到全局变量
+                    GlobalVariables.setCT(ctResult)
+                    
+                    result.add("CT", doubleArrayToJsonArray(ctResult))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: CompressionThreshold完成 (已保存到全局变量)")
                 }
                 

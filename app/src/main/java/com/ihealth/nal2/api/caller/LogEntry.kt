@@ -1,4 +1,4 @@
-package com.funcapp4nal2
+package com.ihealth.nal2.api.caller
 
 data class LogEntry(
     val id: Long,

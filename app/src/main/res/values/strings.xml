@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FuncApp4NAL2</string>
+    <string name="app_name">NAL2APICaller</string>
     <string name="server_running">服务器运行中</string>
     <string name="server_stopped">服务器已停止</string>
     <string name="ip_address">IP地址</string>

@@ -4,17 +4,26 @@ plugins {
 }
 
 android {
-    namespace = "com.funcapp4nal2"
+    namespace = "com.ihealth.nal2.api.caller"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.funcapp4nal2"
+        applicationId = "com.ihealth.nal2.api.caller"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = "ihealth2024"
+            keyAlias = "nal2apicaller"
+            keyPassword = "ihealth2024"
+        }
     }
 
     buildTypes {
@@ -24,6 +33,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
