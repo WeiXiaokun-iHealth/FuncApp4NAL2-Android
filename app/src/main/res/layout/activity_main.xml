@@ -93,7 +93,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="192.168.1.100"
+                        android:text="获取中..."
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:textColor="#333333"
@@ -180,7 +180,7 @@
                         android:id="@+id/tvApiUrl"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="http://192.168.1.100:8080/api/nal2/process"
+                        android:text="获取中..."
                         android:textSize="12sp"
                         android:textColor="#333333"
                         android:fontFamily="monospace"/>

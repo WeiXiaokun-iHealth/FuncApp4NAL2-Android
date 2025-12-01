@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAL2参数管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        .main-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #666;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #007AFF;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0051D5;
+        }
+
+        .btn-success {
+            background: #34C759;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #248A3D;
+        }
+
+        .btn-danger {
+            background: #FF3B30;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #D70015;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .history-list {
+            list-style: none;
+        }
+
+        .history-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f8f8;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .history-item:hover {
+            background: #e8e8e8;
+        }
+
+        .history-item.active {
+            border-color: #007AFF;
+            background: #E3F2FD;
+        }
+
+        .history-item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .history-item-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .history-item-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+        }
+
+        .status-message.error {
+            background: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s;
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .detail-section {
+            margin-bottom: 25px;
+        }
+
+        .detail-section h3 {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .detail-content {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .detail-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Toast弹窗样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #34C759;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-icon {
+            font-size: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                max-width: calc(100% - 20px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main-panel">
+            <h1>NAL2参数管理</h1>
+
+            <div class="status-message" id="statusMessage"></div>
+
+            <!-- App服务器配置 -->
+            <div class="form-group">
+                <label for="appServerUrl">App服务器地址</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="appServerUrl"
+                        style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: 'Courier New', monospace;"
+                        placeholder="http://192.168.1.100:8080">
+                    <button class="btn-primary" onclick="testAppConnection()" style="white-space: nowrap;">🔍
+                        测试连接</button>
+                    <button class="btn-success" onclick="saveAppServerUrl()" style="white-space: nowrap;">💾 保存</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="inputText">Input</label>
+                <textarea id="inputText" placeholder="输入参数（JSON格式）..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="outputText">Output</label>
+                <textarea id="outputText" placeholder="输出参数（JSON格式）..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="sendToApp()">发送到App处理</button>
+                <button class="btn-success" onclick="runAllTests()">🧪 一键测试46个函数</button>
+            </div>
+
+            <!-- 测试结果面板 -->
+            <div id="testPanel" style="display: none; margin-top: 30px;">
+                <h2 style="margin-bottom: 15px;">测试结果</h2>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                    <div style="display: flex; gap: 20px; justify-content: space-around;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: #007AFF;">
+                                <span id="totalTests">0</span>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">总计</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: #34C759;">
+                                <span id="passedTests">0</span>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">通过</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: #FF3B30;">
+                                <span id="failedTests">0</span>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">失败</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: bold; color: #333;">
+                                <span id="testProgress">0%</span>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">进度</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="testResults"
+                    style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; padding: 15px; background: white;">
+                    <div style="text-align: center; color: #999; padding: 20px;">等待测试...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h2>历史记录</h2>
+            <ul class="history-list" id="historyList">
+                <li class="empty-state">暂无历史记录</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 测试详情模态框 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">测试详情</h2>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #e9ecef;">
+                        <h3 style="margin: 0; font-size: 16px; color: #666;">📥 Input Parameters</h3>
+                        <button onclick="copyInput()"
+                            style="padding: 6px 12px; background: #007AFF; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; transition: background 0.3s;">📋
+                            复制</button>
+                    </div>
+                    <div class="detail-content">
+                        <pre id="modalInput"></pre>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #e9ecef;">
+                        <h3 style="margin: 0; font-size: 16px; color: #666;">📤 Output Parameters</h3>
+                        <button onclick="copyOutput()"
+                            style="padding: 6px 12px; background: #007AFF; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; transition: background 0.3s;">📋
+                            复制</button>
+                    </div>
+                    <div class="detail-content">
+                        <pre id="modalOutput"></pre>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #e9ecef;">
+                        <h3 style="margin: 0; font-size: 16px; color: #666;">📊 Test Info</h3>
+                        <button onclick="copyInfo()"
+                            style="padding: 6px 12px; background: #007AFF; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; transition: background 0.3s;">📋
+                            复制</button>
+                    </div>
+                    <div class="detail-content">
+                        <pre id="modalInfo"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentHistoryId = null;
+        let appServerUrl = localStorage.getItem('appServerUrl') || 'http://192.168.1.100:8080';
+
+        // 保存App服务器地址
+        function saveAppServerUrl() {
+            const url = document.getElementById('appServerUrl').value.trim();
+            if (!url) {
+                showMessage('请输入App服务器地址', 'error');
+                return;
+            }
+            localStorage.setItem('appServerUrl', url);
+            appServerUrl = url;
+            showMessage('服务器地址已保存！', 'success');
+        }
+
+        // 测试App连接
+        async function testAppConnection() {
+            const url = document.getElementById('appServerUrl').value.trim();
+            if (!url) {
+                showMessage('请输入App服务器地址', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${url}/health`);
+                const data = await response.json();
+
+                // 连接成功后自动保存地址
+                localStorage.setItem('appServerUrl', url);
+                appServerUrl = url;
+
+                showMessage(`✅ 连接成功！服务器: ${data.server || 'Unknown'} - 地址已保存`, 'success');
+            } catch (error) {
+                showMessage(`❌ 连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 发送input给App处理（HTTP方式）
+        async function sendToApp() {
+            const input = document.getElementById('inputText').value.trim();
+            if (!input) {
+                showMessage('请先输入Input参数', 'error');
+                return;
+            }
+
+            try {
+                const inputData = JSON.parse(input);
+
+                showMessage('正在发送到App处理...', 'success');
+
+                const response = await fetch(`${appServerUrl}/api/nal2/process`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(inputData)
+                });
+
+                const result = await response.json();
+
+                // 显示结果到output
+                document.getElementById('outputText').value = JSON.stringify(result, null, 2);
+                showMessage('✅ 已收到App处理结果！', 'success');
+
+                // 自动保存到历史记录
+                autoSaveToHistory();
+
+            } catch (error) {
+                showMessage(`❌ 处理失败: ${error.message}`, 'error');
+                console.error('发送失败:', error);
+            }
+        }
+
+        // 显示状态消息
+        function showMessage(message, type = 'success') {
+            const msgEl = document.getElementById('statusMessage');
+            msgEl.textContent = message;
+            msgEl.className = `status-message ${type}`;
+            msgEl.style.display = 'block';
+
+            setTimeout(() => {
+                msgEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // 加载当前参数
+        async function loadCurrentParams() {
+            try {
+                const response = await fetch('/api/current-params');
+                const data = await response.json();
+                document.getElementById('inputText').value = data.input || '';
+                document.getElementById('outputText').value = data.output || '';
+            } catch (error) {
+                console.error('加载当前参数失败:', error);
+            }
+        }
+
+        // 接收参数（从服务器获取并显示output到outputText）
+        async function receiveParams() {
+            try {
+                const response = await fetch('/api/current-params');
+                const data = await response.json();
+
+                // 将服务器返回的output显示到outputText
+                document.getElementById('outputText').value = data.output || '';
+                showMessage('已接收参数！', 'success');
+            } catch (error) {
+                showMessage('接收参数失败: ' + error.message, 'error');
+            }
+        }
+
+        // 设置为当前参数
+        async function setCurrentParams() {
+            const input = document.getElementById('inputText').value;
+            const output = document.getElementById('outputText').value;
+
+            try {
+                const response = await fetch('/api/current-params', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input, output })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('已设置为当前参数！', 'success');
+                } else {
+                    showMessage('设置失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('设置失败: ' + error.message, 'error');
+            }
+        }
+
+        // 自动保存到历史（处理完成后）
+        async function autoSaveToHistory() {
+            const input = document.getElementById('inputText').value;
+            const output = document.getElementById('outputText').value;
+
+            try {
+                const response = await fetch('/api/history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input, output })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    if (result.updated) {
+                        console.log('已更新历史记录');
+                    } else {
+                        console.log('已新增历史记录');
+                    }
+                    loadHistory();
+                } else {
+                    console.error('自动保存失败:', result.message);
+                }
+            } catch (error) {
+                console.error('自动保存失败:', error);
+            }
+        }
+
+        // 加载历史记录
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const history = await response.json();
+
+                const listEl = document.getElementById('historyList');
+
+                if (history.length === 0) {
+                    listEl.innerHTML = '<li class="empty-state">暂无历史记录</li>';
+                    return;
+                }
+
+                listEl.innerHTML = history.map(item => `
+                    <li class="history-item ${item.id === currentHistoryId ? 'active' : ''}" 
+                        onclick="loadHistoryItem(${item.id})">
+                        <div class="history-item-name">${escapeHtml(item.function || item.name || '未知函数')}</div>
+                        <div class="history-item-time">${new Date(item.timestamp).toLocaleString('zh-CN')}</div>
+                        <div class="history-item-actions">
+                            <button class="btn-danger btn-small" onclick="event.stopPropagation(); deleteHistory(${item.id})">删除</button>
+                        </div>
+                    </li>
+                `).join('');
+            } catch (error) {
+                console.error('加载历史记录失败:', error);
+            }
+        }
+
+        // 加载历史记录项
+        async function loadHistoryItem(id) {
+            try {
+                const response = await fetch('/api/history');
+                const history = await response.json();
+                const item = history.find(h => h.id === id);
+
+                if (item) {
+                    document.getElementById('inputText').value = item.input || '';
+                    document.getElementById('outputText').value = item.output || '';
+                    currentHistoryId = id;
+                    loadHistory(); // 刷新列表以更新active状态
+                }
+            } catch (error) {
+                console.error('加载历史记录项失败:', error);
+            }
+        }
+
+
+        // 删除历史记录
+        async function deleteHistory(id) {
+            if (!confirm('确定要删除这条历史记录吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/history/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('历史记录已删除！', 'success');
+                    if (currentHistoryId === id) {
+                        currentHistoryId = null;
+                        document.getElementById('inputText').value = '';
+                        document.getElementById('outputText').value = '';
+                    }
+                    loadHistory();
+                } else {
+                    showMessage('删除失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('删除失败: ' + error.message, 'error');
+            }
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 全局变量存储当前testData
+        let currentTestData = null;
+
+        // 显示测试详情模态框
+        function showTestDetail(testData) {
+            currentTestData = testData; // 保存当前数据
+            const modal = document.getElementById('detailModal');
+            document.getElementById('modalTitle').textContent = `${testData.sequence_num}. ${testData.function}`;
+
+            // 构建完整的input对象（用于显示）
+            const completeInput = {
+                sequence_num: testData.sequence_num,
+                function: testData.function,
+                input_parameters: testData.input_parameters
+            };
+
+            // 构建完整的output对象（用于显示）
+            const completeOutput = {
+                sequence_num: testData.result.sequence_num || testData.sequence_num,
+                function: testData.result.function || testData.function,
+                return: testData.result.return,
+                output_parameters: testData.result.output_parameters || {}
+            };
+
+            // 显示完整的Input JSON
+            document.getElementById('modalInput').textContent = JSON.stringify(completeInput, null, 2);
+
+            // 显示完整的Output JSON
+            document.getElementById('modalOutput').textContent = JSON.stringify(completeOutput, null, 2);
+
+            // 显示测试信息
+            const info = {
+                'Function': testData.function,
+                'Sequence Number': testData.sequence_num,
+                'Return Code': testData.result.return,
+                'Success': testData.success ? '✅ Yes' : '❌ No',
+                'Duration': `${testData.duration}ms`,
+                'Timestamp': new Date().toLocaleString('zh-CN')
+            };
+            document.getElementById('modalInfo').textContent = JSON.stringify(info, null, 2);
+
+            modal.classList.add('show');
+        }
+
+        // 显示Toast提示
+        function showToast(message, duration = 2000) {
+            // 创建toast元素
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <span class="toast-icon">✅</span>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+
+            // 显示toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // 隐藏并移除toast
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, duration);
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(text, message = '复制成功') {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(message);
+            }).catch(err => {
+                showToast('复制失败: ' + err);
+            });
+        }
+
+        // 复制Input - 只复制input_parameters
+        function copyInput() {
+            if (currentTestData) {
+                const text = JSON.stringify(currentTestData.input_parameters, null, 2);
+                copyToClipboard(text, 'Input参数已复制！');
+            }
+        }
+
+        // 复制Output - 只复制output_parameters
+        function copyOutput() {
+            if (currentTestData) {
+                const text = JSON.stringify(currentTestData.result.output_parameters || {}, null, 2);
+                copyToClipboard(text, 'Output参数已复制！');
+            }
+        }
+
+        // 复制测试信息
+        function copyInfo() {
+            const text = document.getElementById('modalInfo').textContent;
+            copyToClipboard(text, '测试信息已复制！');
+        }
+
+        // 关闭模态框
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function (event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target === modal) {
+                closeDetailModal();
+            }
+        }
+
+
+        // 定义9步初始化顺序
+        const INIT_SEQUENCE = [34, 35, 36, 37, 38, 19, 23, 21, 2];
+
+        // 定义完整测试顺序（按依赖关系）
+        const TEST_EXECUTION_ORDER = [
+            1, 34, 35, 36, 37, 38,
+            19, 20, 23, 21,
+            17, 18, 13, 14,
+            41, 42, 45, 46, 39, 40, 43, 44,
+            15, 16, 11, 12,
+            2, 3, 22,
+            4, 5, 24,
+            6, 7, 8,
+            9, 10,
+            25, 26, 27, 28, 29, 30, 31, 32, 33
+        ];
+
+
+
+        // 一键测试46个函数（HTTP方式）
+        async function runAllTests() {
+
+            // 显示测试面板
+            document.getElementById('testPanel').style.display = 'block';
+            document.getElementById('testResults').innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">正在加载测试...</div>';
+
+            try {
+                // 获取所有测试文件
+                const response = await fetch('/api/test/run-all');
+                const allTests = await response.json();
+
+                // 创建sequence_num到test的映射
+                const testMap = {};
+                allTests.forEach(test => {
+                    testMap[test.sequence_num] = test;
+                });
+
+                // 按执行顺序排序测试
+                const tests = TEST_EXECUTION_ORDER
+                    .filter(seq => testMap[seq])
+                    .map(seq => testMap[seq]);
+
+                document.getElementById('totalTests').textContent = tests.length;
+                document.getElementById('passedTests').textContent = '0';
+                document.getElementById('failedTests').textContent = '0';
+                document.getElementById('testProgress').textContent = '0%';
+
+                let passed = 0;
+                let failed = 0;
+                const results = [];
+                const initResults = {}; // 存储初始化函数的结果
+
+                // 创建测试结果显示
+                document.getElementById('testResults').innerHTML = '';
+
+                // 步骤1: 执行9步初始化
+                showMessage('开始9步初始化流程...', 'success');
+                console.log('开始9步初始化流程');
+
+                for (let initIdx = 0; initIdx < INIT_SEQUENCE.length; initIdx++) {
+                    const seqNum = INIT_SEQUENCE[initIdx];
+                    const test = testMap[seqNum];
+                    if (!test) continue;
+
+                    const testIdx = tests.findIndex(t => t.sequence_num === seqNum);
+                    const testId = `test-${testIdx}`;
+
+                    // 添加测试项
+                    const testItem = document.createElement('div');
+                    testItem.id = testId;
+                    testItem.style.cssText = 'padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #FFA500; background: #FFF8E1;';
+                    testItem.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600;">🔧 初始化 ${initIdx + 1}/9: ${test.function}</span>
+                            <span id="${testId}-status" style="color: #FFA500;">运行中...</span>
+                        </div>
+                        <div id="${testId}-details" style="font-size: 12px; color: #666; margin-top: 4px;"></div>
+                    `;
+                    document.getElementById('testResults').appendChild(testItem);
+
+                    // 运行初始化测试（发送到App）
+                    const startTime = Date.now();
+                    try {
+                        const testResult = await fetch(`${appServerUrl}/api/nal2/process`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(test)
+                        });
+
+                        const result = await testResult.json();
+                        const duration = Date.now() - startTime;
+                        const success = result.return === 0 && !result.output_parameters?.error;
+
+                        if (success) {
+                            passed++;
+                            // 缓存初始化结果
+                            initResults[test.sequence_num] = result.output_parameters;
+                            console.log(`缓存初始化结果 [${test.sequence_num}]:`, result.output_parameters);
+
+                            testItem.style.borderColor = '#34C759';
+                            testItem.style.backgroundColor = '#F1F9F1';
+                            document.getElementById(`${testId}-status`).textContent = '✅ 初始化完成';
+                            document.getElementById(`${testId}-status`).style.color = '#34C759';
+                        } else {
+                            failed++;
+                            testItem.style.borderColor = '#FF3B30';
+                            testItem.style.backgroundColor = '#FFF5F5';
+                            document.getElementById(`${testId}-status`).textContent = '❌ 失败';
+                            document.getElementById(`${testId}-status`).style.color = '#FF3B30';
+                            document.getElementById(`${testId}-details`).innerHTML = `
+                                <div style="background: #FFE6E6; padding: 6px; border-radius: 3px; margin-top: 4px;">
+                                    ${result.output_parameters?.error || '未知错误'}
+                                </div>
+                            `;
+                        }
+
+                        document.getElementById(`${testId}-details`).innerHTML += `<div>耗时: ${duration}ms</div>`;
+
+                        const testData = { ...test, result, success, duration };
+                        results.push(testData);
+                        testItem.onclick = () => showTestDetail(testData);
+
+                    } catch (error) {
+                        failed++;
+                        testItem.style.borderColor = '#FF3B30';
+                        testItem.style.backgroundColor = '#FFF5F5';
+                        document.getElementById(`${testId}-status`).textContent = '❌ 异常';
+                        document.getElementById(`${testId}-status`).style.color = '#FF3B30';
+                        document.getElementById(`${testId}-details`).innerHTML = `
+                            <div style="background: #FFE6E6; padding: 6px; border-radius: 3px; margin-top: 4px;">
+                                ${error.message}
+                            </div>
+                        `;
+                    }
+
+                    document.getElementById('passedTests').textContent = passed;
+                    document.getElementById('failedTests').textContent = failed;
+                    document.getElementById('testProgress').textContent = Math.round((initIdx + 1) / tests.length * 100) + '%';
+                    document.getElementById('testResults').scrollTop = document.getElementById('testResults').scrollHeight;
+                }
+
+                console.log('9步初始化完成');
+                showMessage('9步初始化完成，开始功能测试...', 'success');
+
+                // 逐个运行测试
+                for (let i = 0; i < tests.length; i++) {
+                    const test = tests[i];
+
+                    // 跳过已在初始化中执行的测试
+                    if (INIT_SEQUENCE.includes(test.sequence_num)) {
+                        continue;
+                    }
+                    const testId = `test-${i}`;
+
+                    // 添加测试项
+                    const testItem = document.createElement('div');
+                    testItem.id = testId;
+                    testItem.style.cssText = 'padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; transition: transform 0.2s;';
+                    testItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600;">${test.sequence_num}. ${test.function}</span>
+                    <span id="${testId}-status" style="color: #FFA500;">运行中...</span>
+                </div>
+                <div id="${testId}-details" style="font-size: 12px; color: #666; margin-top: 4px;"></div>
+                `;
+
+                    // 添加鼠标悬停效果
+                    testItem.onmouseenter = () => {
+                        testItem.style.transform = 'translateX(5px)';
+                    };
+                    testItem.onmouseleave = () => {
+                        testItem.style.transform = 'translateX(0)';
+                    };
+
+                    document.getElementById('testResults').appendChild(testItem);
+
+                    // 特殊处理：CompressionRatio_NL2需要centreFreq
+                    let testToRun = test;
+                    if (test.sequence_num === 22 && initResults[20]) {
+                        testToRun = {
+                            ...test,
+                            input_parameters: {
+                                ...test.input_parameters,
+                                centreFreq: initResults[20].centreFreq
+                            }
+                        };
+                        console.log('CompressionRatio_NL2: 使用CenterFrequencies的结果', initResults[20].centreFreq);
+                    }
+
+                    // 运行单个测试（发送到App）
+                    const startTime = Date.now();
+                    try {
+                        const testResult = await fetch(`${appServerUrl}/api/nal2/process`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(test)
+                        });
+
+                        const result = await testResult.json();
+                        const duration = Date.now() - startTime;
+                        const success = result.return === 0 && !result.output_parameters?.error;
+
+                        if (success) {
+                            passed++;
+                            testItem.style.borderColor = '#34C759';
+                            testItem.style.backgroundColor = '#F1F9F1';
+                            document.getElementById(`${testId}-status`).textContent = '✅ 通过';
+                            document.getElementById(`${testId}-status`).style.color = '#34C759';
+                        } else {
+                            failed++;
+                            testItem.style.borderColor = '#FF3B30';
+                            testItem.style.backgroundColor = '#FFF5F5';
+                            document.getElementById(`${testId}-status`).textContent = '❌ 失败';
+                            document.getElementById(`${testId}-status`).style.color = '#FF3B30';
+                            document.getElementById(`${testId}-details`).innerHTML = `
+                <div style="background: #FFE6E6; padding: 6px; border-radius: 3px; margin-top: 4px;">
+                    ${result.output_parameters?.error || '未知错误'}
+                </div>
+                `;
+                        }
+
+                        document.getElementById(`${testId}-details`).innerHTML += `<div>耗时: ${duration}ms</div>`;
+
+                        const testData = {
+                            ...test,
+                            result,
+                            success,
+                            duration
+                        };
+
+                        results.push(testData);
+
+                        // 添加点击事件显示详情
+                        testItem.onclick = () => showTestDetail(testData);
+
+                    } catch (error) {
+                        failed++;
+                        testItem.style.borderColor = '#FF3B30';
+                        testItem.style.backgroundColor = '#FFF5F5';
+                        document.getElementById(`${testId}-status`).textContent = '❌ 异常';
+                        document.getElementById(`${testId}-status`).style.color = '#FF3B30';
+                        document.getElementById(`${testId}-details`).innerHTML = `
+                <div style="background: #FFE6E6; padding: 6px; border-radius: 3px; margin-top: 4px;">
+                    ${error.message}
+                </div>
+                `;
+                    }
+
+                    // 更新统计
+                    document.getElementById('passedTests').textContent = passed;
+                    document.getElementById('failedTests').textContent = failed;
+                    document.getElementById('testProgress').textContent = Math.round((i + 1) / tests.length * 100) + '%';
+
+                    // 滚动到底部
+                    document.getElementById('testResults').scrollTop = document.getElementById('testResults').scrollHeight;
+                }
+
+                // 保存测试结果
+                await fetch('/api/test/results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(results)
+                });
+
+                showMessage(`测试完成！通过: ${passed}, 失败: ${failed}`, passed === tests.length ? 'success' : 'error');
+
+            } catch (error) {
+                showMessage('测试失败: ' + error.message, 'error');
+                console.error('测试失败:', error);
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = () => {
+            // 加载保存的服务器地址
+            document.getElementById('appServerUrl').value = appServerUrl;
+            loadCurrentParams();
+            loadHistory();
+        };
+    </script>
+</body>
+
+</html>

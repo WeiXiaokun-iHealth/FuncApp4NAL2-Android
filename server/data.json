@@ -1,0 +1,225 @@
+{
+  "currentParams": {
+    "input": "{\"name\":\"evesdsadas\"}",
+    "output": "{\"name\":\"evesdsadas\"}"
+  },
+  "history": [
+    {
+      "id": 1763458463782,
+      "function": "EarSimulatorInputOutputCurve_NL2",
+      "input": "{\n  \"sequence_num\": 8,\n  \"function\": \"EarSimulatorInputOutputCurve_NL2\",\n  \"input_parameters\": {\n    \"AC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"BC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      999,\n      999,\n      999\n    ],\n    \"graphFreq\": 10,\n    \"startLevel\": 40,\n    \"finishLevel\": 90,\n    \"limiting\": 0,\n    \"channels\": 18,\n    \"direction\": 0,\n    \"mic\": 0,\n    \"target\": 0,\n    \"aidType\": 0,\n    \"ACother\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"noOfAids\": 0,\n    \"tubing\": 0,\n    \"vent\": 0,\n    \"RECDmeasType\": 0\n  }\n}",
+      "output": "{\n  \"sequence_num\": 8,\n  \"function\": \"EarSimulatorInputOutputCurve_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"ESIO\": [\n      71.19865901670364,\n      72.19865901670364,\n      73.19865901670364,\n      74.19865901670364,\n      75.19865901670364,\n      76.19865901670364,\n      77.19865901670364,\n      78.19865901670364,\n      79.19865901670364,\n      80.19865901670364,\n      81.19865901670364,\n      82.19865901670364,\n      83.19865901670364,\n      84.19865901670364,\n      85.19865901670364,\n      86.19865901670364,\n      87.19865901670364,\n      88.19865901670364,\n      89.19865901670364,\n      90.19865901670364,\n      91.19865901670364,\n      92.19865901670364,\n      92.66233492568395,\n      93.09280606417805,\n      93.51338682994785,\n      93.92461658098637,\n      94.32702817254798,\n      94.72114796562995,\n      95.10749582181288,\n      95.48658508193421,\n      95.85892252698157,\n      96.2250083202396,\n      96.58533593015561,\n      96.9403920336237,\n      97.29065639949334,\n      97.63660175211874,\n      97.97869361474258,\n      98.31739013250039,\n      98.65314187486334,\n      98.98639161746298,\n      99.31757410346565,\n      99.647115785,\n      99.97543454559676,\n      100.30293940514903,\n      100.63003020954137,\n      100.95709730777943,\n      101.28452122016232,\n      101.61267230172805,\n      101.9419104058409,\n      102.27258455332414,\n      102.6050326129619,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ],\n    \"ESIOunl\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ],\n    \"lineType\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-12-01T03:09:21.065Z"
+    },
+    {
+      "id": 1763453709878,
+      "function": "CompressionRatio_NL2",
+      "input": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"input_parameters\": {\n    \"channels\": 18,\n    \"centreFreq\": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],\n    \"AC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"BC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 999.0, 999.0, 999.0],\n    \"direction\": 0,\n    \"mic\": 0,\n    \"limiting\": 0,\n    \"ACother\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"noOfAids\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"CR\": [\n      0,\n      1.3273724227594101,\n      1.3605940274999004,\n      1.3605940274999004,\n      1.6439917104565769,\n      2.088941846520355,\n      2.1870588954854733,\n      2.2197021976915696,\n      2.1218386233614903,\n      1.8418195576423109,\n      1.7227793192461351,\n      1.5669531922299291,\n      1.4158585906330043,\n      1.2865742091838968,\n      1.1622363676394676,\n      1.0355057981033435,\n      1.0010963031778277,\n      0.9999999999999851,\n      1.3320920030981402\n    ]\n  }\n}",
+      "timestamp": "2025-12-01T03:42:24.212Z"
+    },
+    {
+      "id": 1763430693287,
+      "function": "AidedThreshold_NL2",
+      "input": "{\n  \"sequence_num\": 10,\n  \"function\": \"AidedThreshold_NL2\",\n  \"input_parameters\": {\n    \"AC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"BC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 999.0, 999.0, 999.0],\n    \"CT\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],\n    \"dbOption\": 0,\n    \"ACother\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"noOfAids\": 0,\n    \"limiting\": 0,\n    \"channels\": 18,\n    \"direction\": 0,\n    \"mic\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 10,\n  \"result\": 0,\n  \"function\": \"AidedThreshold_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"AT\": [\n      27.99235269540125,\n      27.99235269540125,\n      27.99235269540125,\n      27.99235269540125,\n      27.817371456879883,\n      25.28085752958271,\n      23.473194085703682,\n      21.3078933108835,\n      19.476346143810943,\n      15.145114182549118,\n      21.28634098329636,\n      27.4840585043425,\n      35.710021385538084,\n      38.974997256946295,\n      44.21946588977697,\n      46.04433622440915,\n      45.90461614698168,\n      44.943059230756205,\n      40.28598381090084\n    ]\n  }\n}",
+      "timestamp": "2025-11-19T07:30:42.035Z"
+    },
+    {
+      "id": 1763372536474,
+      "function": "TccInputOutputCurve_NL2",
+      "input": "{\n  \"sequence_num\": 7,\n  \"function\": \"TccInputOutputCurve_NL2\",\n  \"input_parameters\": {\n    \"AC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"BC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      999,\n      999,\n      999\n    ],\n    \"graphFreq\": 10,\n    \"startLevel\": 40,\n    \"finishLevel\": 90,\n    \"limiting\": 0,\n    \"channels\": 18,\n    \"direction\": 0,\n    \"mic\": 0,\n    \"target\": 0,\n    \"aidType\": 0,\n    \"ACother\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"noOfAids\": 0,\n    \"tubing\": 0,\n    \"vent\": 0,\n    \"RECDmeasType\": 0\n  }\n}",
+      "output": "{\n  \"sequence_num\": 7,\n  \"function\": \"TccInputOutputCurve_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"TccIO\": [\n      65.88865901670364,\n      66.88865901670364,\n      67.88865901670364,\n      68.88865901670364,\n      69.88865901670364,\n      70.88865901670364,\n      71.88865901670364,\n      72.88865901670364,\n      73.88865901670364,\n      74.88865901670364,\n      75.88865901670364,\n      76.88865901670364,\n      77.88865901670364,\n      78.88865901670364,\n      79.88865901670364,\n      80.88865901670364,\n      81.88865901670364,\n      82.88865901670364,\n      83.88865901670364,\n      84.88865901670364,\n      85.88865901670364,\n      86.88865901670364,\n      87.35233492568395,\n      87.78280606417805,\n      88.20338682994785,\n      88.61461658098636,\n      89.01702817254798,\n      89.41114796562995,\n      89.79749582181287,\n      90.1765850819342,\n      90.54892252698157,\n      90.9150083202396,\n      91.2753359301556,\n      91.63039203362369,\n      91.98065639949334,\n      92.32660175211873,\n      92.66869361474258,\n      93.00739013250039,\n      93.34314187486333,\n      93.67639161746298,\n      94.00757410346564,\n      94.337115785,\n      94.66543454559675,\n      94.99293940514903,\n      95.32003020954137,\n      95.64709730777943,\n      95.97452122016232,\n      96.30267230172805,\n      96.6319104058409,\n      96.96258455332413,\n      97.2950326129619,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ],\n    \"TccIOunl\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ],\n    \"lineType\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-12-01T03:42:34.381Z"
+    },
+    {
+      "id": 1763372178852,
+      "function": "GetREDDindiv",
+      "input": "{\n  \"sequence_num\": 11,\n  \"function\": \"GetREDDindiv\",\n  \"input_parameters\": {\n    \"defValues\": 0\n  }\n}",
+      "output": "{\n  \"sequence_num\": 11,\n  \"result\": 0,\n  \"function\": \"GetREDDindiv\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"REDD\": [\n      26.2,\n      21.2,\n      19.2,\n      16.2,\n      14.5,\n      13.6,\n      11.7,\n      10.7,\n      9.9,\n      9.5,\n      9.2,\n      11.2,\n      15.9,\n      17.7,\n      15.1,\n      13.4,\n      12.9,\n      16.9,\n      16.9\n    ]\n  }\n}",
+      "timestamp": "2025-11-17T09:36:18.852Z"
+    },
+    {
+      "id": 1763370996353,
+      "function": "未知函数",
+      "input": "{\"name\":\"evesdsadas\"}",
+      "output": "{\n  \"sequence_num\": 0,\n  \"function\": \"\",\n  \"return\": -1,\n  \"output_parameters\": {\n    \"error\": \"未实现的函数: \"\n  }\n}",
+      "timestamp": "2025-12-01T03:18:30.817Z"
+    },
+    {
+      "id": 1763365435149,
+      "function": "RealEarInputOutputCurve_NL2",
+      "input": "\n{\n  \"sequence_num\": 6,\n  \"function\": \"RealEarInputOutputCurve_NL2\",\n  \"input_parameters\": {\n    \"AC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"BC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      999,\n      999,\n      999\n    ],\n    \"graphFreq\": 10,\n    \"startLevel\": 40,\n    \"finishLevel\": 90,\n    \"limiting\": 0,\n    \"channels\": 18,\n    \"direction\": 0,\n    \"mic\": 0,\n    \"target\": 0,\n    \"ACother\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"noOfAids\": 0\n  }\n}",
+      "output": "{\n  \"sequence_num\": 6,\n  \"result\": 0,\n  \"function\": \"RealEarInputOutputCurve_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"REIOunl\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ],\n    \"REIO\": [\n      65.96365901670364,\n      66.96365901670364,\n      67.96365901670364,\n      68.96365901670364,\n      69.96365901670364,\n      70.96365901670364,\n      71.96365901670364,\n      72.96365901670364,\n      73.96365901670364,\n      74.96365901670364,\n      75.96365901670364,\n      76.96365901670364,\n      77.96365901670364,\n      78.96365901670364,\n      79.96365901670364,\n      80.96365901670364,\n      81.96365901670364,\n      82.96365901670364,\n      83.96365901670364,\n      84.96365901670364,\n      85.96365901670364,\n      86.96365901670364,\n      87.48133492568395,\n      87.91480606417804,\n      88.33838682994785,\n      88.75261658098637,\n      89.15802817254797,\n      89.55514796562996,\n      89.94449582181286,\n      90.32658508193421,\n      90.70192252698158,\n      91.07100832023959,\n      91.43433593015561,\n      91.79239203362368,\n      92.14565639949333,\n      92.49460175211873,\n      92.83969361474257,\n      93.18139013250038,\n      93.52014187486333,\n      93.85639161746298,\n      94.19057410346565,\n      94.523115785,\n      94.85443454559675,\n      95.18493940514902,\n      95.51503020954138,\n      95.84509730777944,\n      96.17552122016232,\n      96.50667230172806,\n      96.83891040584089,\n      97.17258455332414,\n      97.5080326129619,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-11-19T01:45:30.059Z"
+    },
+    {
+      "id": 1763365253068,
+      "function": "SetREDDindiv9",
+      "input": "{\n  \"sequence_num\": 16,\n  \"function\": \"SetREDDindiv9\",\n  \"input_parameters\": {\n    \"REDD\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],\n    \"defValues\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 16,\n  \"result\": -1,\n  \"function\": \"SetREDDindiv9\",\n  \"return\": -1,\n  \"output_parameters\": {\n    \"error\": \"未知函数: SetREDDindiv9\"\n  }\n}",
+      "timestamp": "2025-11-17T07:40:53.068Z"
+    },
+    {
+      "id": 1763350994497,
+      "function": "dllVersion",
+      "input": "{\n  \"sequence_num\": 1,\n  \"function\": \"dllVersion\",\n  \"input_parameters\": {}\n}\n",
+      "output": "{\n  \"sequence_num\": 1,\n  \"function\": \"dllVersion\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"major\": 2,\n    \"minor\": 0\n  }\n}",
+      "timestamp": "2025-11-28T03:18:22.759Z"
+    },
+    {
+      "id": 1763350316133,
+      "function": "EarSimulatorGain_NL2",
+      "input": "{\n  \"sequence_num\": 5,\n  \"function\": \"EarSimulatorGain_NL2\",\n  \"input_parameters\": {\n    \"AC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"BC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 999.0, 999.0, 999.0],\n    \"L\": 65.0,\n    \"direction\": 0,\n    \"mic\": 0,\n    \"limiting\": 0,\n    \"channels\": 18,\n    \"target\": 0,\n    \"aidType\": 0,\n    \"ACother\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"noOfAids\": 0,\n    \"tubing\": 0,\n    \"vent\": 0,\n    \"RECDmeasType\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 5,\n  \"result\": 0,\n  \"function\": \"EarSimulatorGain_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"ESG\": [\n      9.303462989316216,\n      9.303462989316216,\n      9.021682342024818,\n      6.793274749734236,\n      8.033359501981767,\n      10.300993884255318,\n      11.939862248056937,\n      15.7080801641325,\n      19.11640948206258,\n      22.928768126685227,\n      26.63658508193421,\n      30.850514594991573,\n      31.829978614461915,\n      29.44891578653197,\n      28.450534110223046,\n      24.655663775590835,\n      23.65538385301832,\n      30.456940769243793,\n      31.96401618909917\n    ],\n    \"lineType\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-11-17T08:51:58.519Z"
+    },
+    {
+      "id": 1763350284016,
+      "function": "TccCouplerGain_NL2",
+      "input": "{\n  \"sequence_num\": 4,\n  \"function\": \"TccCouplerGain_NL2\",\n  \"input_parameters\": {\n    \"AC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"BC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      999,\n      999,\n      999\n    ],\n    \"L\": 65,\n    \"limiting\": 0,\n    \"channels\": 18,\n    \"direction\": 0,\n    \"mic\": 0,\n    \"target\": 0,\n    \"aidType\": 0,\n    \"ACother\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"noOfAids\": 0,\n    \"tubing\": 0,\n    \"vent\": 0,\n    \"RECDmeasType\": 0\n  }\n}",
+      "output": "{\n  \"sequence_num\": 0,\n  \"function\": \"unknown\",\n  \"return\": -1,\n  \"output_parameters\": {\n    \"error\": \"No value for speechLevel\"\n  }\n}",
+      "timestamp": "2025-11-21T02:39:27.975Z"
+    },
+    {
+      "id": 1763350245139,
+      "function": "RealEarAidedGain_NL2",
+      "input": "{\n  \"sequence_num\": 3,\n  \"function\": \"RealEarAidedGain_NL2\",\n  \"input_parameters\": {\n    \"AC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"BC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 999.0, 999.0, 999.0],\n    \"L\": 65.0,\n    \"limiting\": 0,\n    \"channels\": 18,\n    \"direction\": 0,\n    \"mic\": 0,\n    \"ACother\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"noOfAids\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 3,\n  \"result\": 0,\n  \"function\": \"RealEarAidedGain_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"REAG\": [\n      4.521682342024818,\n      4.421682342024823,\n      5.22168234202482,\n      5.72168234202482,\n      8.603619123149073,\n      9.74922876000386,\n      11.567593038656554,\n      13.150080164132504,\n      16.19640948206259,\n      21.71562044433327,\n      24.12658508193421,\n      29.281935574575527,\n      39.559478994737034,\n      44.334886380080036,\n      43.38053411022304,\n      38.25566377559085,\n      32.895383853018316,\n      21.856940769243792,\n      16.314016189099164\n    ]\n  }\n}",
+      "timestamp": "2025-11-17T07:41:19.808Z"
+    },
+    {
+      "id": 1763350230887,
+      "function": "getMPO_NL2",
+      "input": "{\n  \"sequence_num\": 24,\n  \"function\": \"getMPO_NL2\",\n  \"input_parameters\": {\n    \"type\": 1,\n    \"AC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"BC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 999.0, 999.0, 999.0],\n    \"channels\": 18,\n    \"limiting\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 24,\n  \"result\": 0,\n  \"function\": \"getMPO_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"MPO\": [\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999,\n      999\n    ]\n  }\n}",
+      "timestamp": "2025-11-19T02:12:02.460Z"
+    },
+    {
+      "id": 1763350214816,
+      "function": "SetRECDt_indiv9_NL2",
+      "input": "{\n  \"sequence_num\": 127,\n  \"function\": \"SetRECDt_indiv9_NL2\",\n  \"input_parameters\": {\n    \"RECDt\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 127,\n  \"result\": 0,\n  \"function\": \"SetRECDt_indiv9_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-17T07:40:31.106Z"
+    },
+    {
+      "id": 1763350206230,
+      "function": "SetRECDt_indiv_NL2",
+      "input": "{\n  \"sequence_num\": 126,\n  \"function\": \"SetRECDt_indiv_NL2\",\n  \"input_parameters\": {\n    \"RECDt\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 126,\n  \"result\": 0,\n  \"function\": \"SetRECDt_indiv_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-17T03:30:06.230Z"
+    },
+    {
+      "id": 1763350200196,
+      "function": "SetRECDh_indiv9_NL2",
+      "input": "{\n  \"sequence_num\": 125,\n  \"function\": \"SetRECDh_indiv9_NL2\",\n  \"input_parameters\": {\n    \"RECDh\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 125,\n  \"result\": 0,\n  \"function\": \"SetRECDh_indiv9_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-17T03:30:00.196Z"
+    },
+    {
+      "id": 1763350193753,
+      "function": "SetRECDh_indiv_NL2",
+      "input": "{\n  \"sequence_num\": 124,\n  \"function\": \"SetRECDh_indiv_NL2\",\n  \"input_parameters\": {\n    \"RECDh\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 124,\n  \"result\": 0,\n  \"function\": \"SetRECDh_indiv_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-17T03:29:53.753Z"
+    },
+    {
+      "id": 1763350186699,
+      "function": "GetRECDt_indiv9_NL2",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"GetRECDt_indiv9_NL2\",\n  \"input_parameters\": {\n    \"RECDmeasType\": 0,\n    \"dateOfBirth\": 19690420,\n    \"aidType\": 0,\n    \"tubing\": 0,\n    \"vent\": 0,\n    \"earpiece\": 0,\n    \"coupler\": 0,\n    \"fittingDepth\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"GetRECDt_indiv9_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"RECDt\": [\n      2.8502532424945346,\n      3.0785105998714375,\n      2.4128005374498818,\n      6.083531676275904,\n      7.33490376949985,\n      9.091994265008857,\n      13.206996890050172,\n      13.716708994863808,\n      9.63846420169195\n    ]\n  }\n}",
+      "timestamp": "2025-11-17T03:29:46.699Z"
+    },
+    {
+      "id": 1763350172148,
+      "function": "GetRECDh_indiv9_NL2",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"GetRECDh_indiv9_NL2\",\n  \"input_parameters\": {\n    \"RECDmeasType\": 0,\n    \"dateOfBirth\": 19680420,\n    \"aidType\": 0,\n    \"tubing\": 0,\n    \"coupler\": 0,\n    \"fittingDepth\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"GetRECDh_indiv9_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"RECDh\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-11-17T03:29:32.148Z"
+    },
+    {
+      "id": 1763350166170,
+      "function": "GetRECDh_indiv_NL2",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"GetRECDh_indiv_NL2\",\n  \"input_parameters\": {\n    \"RECDmeasType\": 0,\n    \"dateOfBirth\": 19680420,\n    \"aidType\": 0,\n    \"tubing\": 0,\n    \"coupler\": 0,\n    \"fittingDepth\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"GetRECDh_indiv_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"RECDh\": [\n      0.5040316315057747,\n      0.6611022782576277,\n      2.9280387034181876,\n      4.580878440963117,\n      6.318727371586899,\n      5.081777517982178,\n      4.372382268742138,\n      4.493421661026197,\n      2.5810765128689583\n    ]\n  }\n}",
+      "timestamp": "2025-11-17T03:29:26.170Z"
+    },
+    {
+      "id": 1763350159786,
+      "function": "SetGender",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"SetGender\",\n  \"input_parameters\": {\n    \"gender\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"SetGender\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-17T03:29:19.786Z"
+    },
+    {
+      "id": 1763350154030,
+      "function": "SetTonalLanguage",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"SetTonalLanguage\",\n  \"input_parameters\": {\n    \"tonal\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"SetTonalLanguage\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-17T03:29:14.030Z"
+    },
+    {
+      "id": 1763350147767,
+      "function": "SetCompSpeed",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"SetCompSpeed\",\n  \"input_parameters\": {\n    \"compSpeed\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"SetCompSpeed\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-17T05:54:14.165Z"
+    },
+    {
+      "id": 1763350141780,
+      "function": "SetExperience",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"SetExperience\",\n  \"input_parameters\": {\n    \"experience\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"SetExperience\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-17T03:29:01.780Z"
+    },
+    {
+      "id": 1763350126288,
+      "function": "setBWC",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"setBWC\",\n  \"input_parameters\": {\n    \"channels\": 18,\n    \"crossOver\": [250.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0, 3000.0, 4000.0, 6000.0, 8000.0, 10000.0, 12000.0, 14000.0, 16000.0, 18000.0, 20000.0, 22000.0, 24000.0],\n    \"bandwidth\": 0,\n    \"selection\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"function\": \"setBWC\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-24T07:38:16.979Z"
+    },
+    {
+      "id": 1763350114794,
+      "function": "CompressionThreshold_NL2",
+      "input": "{\n  \"sequence_num\": 21,\n  \"function\": \"CompressionThreshold_NL2\",\n  \"input_parameters\": {\n    \"bandwidth\": 0,\n    \"selection\": 1,\n    \"WBCT\": 100,\n    \"aidType\": 0,\n    \"direction\": 0,\n    \"mic\": 0,\n    \"calcCh\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 21,\n  \"function\": \"CompressionThreshold_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"CT\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-11-28T09:39:41.209Z"
+    },
+    {
+      "id": 1763350108669,
+      "function": "CenterFrequencies",
+      "input": "{\n\"sequence_num\": 20,\n\"function\": \"CenterFrequencies\",\n\"input_parameters\": {\n  \"channels\": 18\n}\n}\n",
+      "output": "{\n  \"sequence_num\": 20,\n  \"function\": \"CenterFrequencies\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"centreF\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-11-28T08:24:24.054Z"
+    },
+    {
+      "id": 1763346828066,
+      "function": "CrossOverFrequencies_NL2",
+      "input": "{\n  \"sequence_num\": 19,\n  \"function\": \"CrossOverFrequencies_NL2\",\n  \"input_parameters\": {\n    \"channels\": 18,\n    \"AC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"BC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0]\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 19,\n  \"function\": \"CrossOverFrequencies_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"CFArray\": [\n      0,\n      178.06239882323337,\n      224.19681664967337,\n      282.2842606189176,\n      355.4216557752587,\n      447.50831348887715,\n      563.4538227695684,\n      709.4398044105412,\n      893.2494833527821,\n      1124.682650380699,\n      1416.0781367816212,\n      1782.9716576423868,\n      2244.924096618748,\n      2826.5643920798198,\n      3558.902625976133,\n      4480.983322605355,\n      5641.967102699254,\n      7103.75167596759,\n      0\n    ],\n    \"FreqInCh\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-11-28T08:24:19.281Z"
+    },
+    {
+      "id": 1763345867104,
+      "function": "GetRECDt_indiv_NL2",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"GetRECDt_indiv_NL2\",\n  \"input_parameters\": {\n    \"RECDmeasType\": 0,\n    \"dateOfBirth\": 19690420,\n    \"aidType\": 0,\n    \"tubing\": 0,\n    \"vent\": 0,\n    \"earpiece\": 0,\n    \"coupler\": 0,\n    \"fittingDepth\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"GetRECDt_indiv_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"RECDt\": [\n      -1.4576576657885636,\n      -0.6748132020126847,\n      0.9678178103834463,\n      2.8502532424945346,\n      3.7308426283536975,\n      3.614224673707432,\n      3.0785105998714375,\n      2.5118487238934573,\n      2.1383915278802617\n    ]\n  }\n}",
+      "timestamp": "2025-11-17T03:29:38.434Z"
+    },
+    {
+      "id": 1763276235979,
+      "function": "SetAdultChild",
+      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"SetAdultChild\",\n  \"input_parameters\": {\n    \"adultChild\": 0,\n    \"dateOfBirth\": 20100615\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 123,\n  \"function\": \"SetAdultChild\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"success\": true\n  }\n}",
+      "timestamp": "2025-11-24T07:34:02.550Z"
+    },
+    {
+      "id": 1763100479048,
+      "function": "RealEarInsertionGain_NL2",
+      "input": "{\n  \"sequence_num\": 2,\n  \"function\": \"RealEarInsertionGain_NL2\",\n  \"input_parameters\": {\n    \"AC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"BC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      999,\n      999,\n      999\n    ],\n    \"L\": 52,\n    \"limiting\": 2,\n    \"channels\": 18,\n    \"direction\": 0,\n    \"mic\": 1,\n    \"ACother\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"noOfAids\": 1\n  }\n}",
+      "output": "{\n  \"sequence_num\": 2,\n  \"result\": 0,\n  \"function\": \"RealEarInsertionGain_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"REIG\": [\n      5.007647304598746,\n      5.007647304598748,\n      5.007647304598748,\n      5.00764730459875,\n      8.782628543120119,\n      12.817052758575704,\n      14.003896630637604,\n      16.4700814555311,\n      19.695092380391845,\n      22.854885817450874,\n      23.963659016703648,\n      25.515941495657508,\n      27.289978614461923,\n      26.198915786531963,\n      24.780534110223023,\n      21.95566377559084,\n      19.59538385301832,\n      16.556940769243802,\n      12.714016189099164\n    ]\n  }\n}",
+      "timestamp": "2025-11-19T05:21:26.551Z"
+    }
+  ]
+}

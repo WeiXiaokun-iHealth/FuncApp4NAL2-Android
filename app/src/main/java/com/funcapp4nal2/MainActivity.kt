@@ -77,6 +77,16 @@ class MainActivity : AppCompatActivity() {
         try {
             addLog("INFO", "正在启动HTTP服务器...")
             
+            // 先尝试停止可能存在的旧服务器实例
+            try {
+                if (::httpServer.isInitialized) {
+                    httpServer.stop()
+                    Thread.sleep(500) // 等待端口释放
+                }
+            } catch (e: Exception) {
+                // 忽略停止错误
+            }
+            
             httpServer = HttpServer(this, 8080)
             
             // 设置回调
@@ -115,6 +125,8 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             addLog("ERROR", "服务器启动失败: ${e.message}")
             tvStatus.text = "服务器启动失败"
+            tvIpAddress.text = "启动失败"
+            tvApiUrl.text = "服务器未运行"
         }
     }
 
