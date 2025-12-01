@@ -1,0 +1,7 @@
+{
+"sequence_num": 20,
+"function": "CenterFrequencies",
+"input_parameters": {
+  "channels": 18
+}
+}

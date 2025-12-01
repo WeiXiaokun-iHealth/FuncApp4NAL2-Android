@@ -43,8 +43,8 @@
       "id": 1763370996353,
       "function": "未知函数",
       "input": "{\"name\":\"evesdsadas\"}",
-      "output": "{\n  \"sequence_num\": 0,\n  \"function\": \"\",\n  \"return\": -1,\n  \"output_parameters\": {\n    \"error\": \"未实现的函数: \"\n  }\n}",
-      "timestamp": "2025-12-01T03:18:30.817Z"
+      "output": "{\n  \"sequence_num\": 0,\n  \"function\": \"\",\n  \"return\": -1,\n  \"output_parameters\": {\n    \"error\": \"缺少输入参数\"\n  }\n}",
+      "timestamp": "2025-12-01T10:11:39.477Z"
     },
     {
       "id": 1763365435149,

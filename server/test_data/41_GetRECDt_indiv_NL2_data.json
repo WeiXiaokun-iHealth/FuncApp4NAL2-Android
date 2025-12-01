@@ -1,0 +1,14 @@
+{
+  "sequence_num": 41,
+  "function": "GetRECDt_indiv_NL2",
+  "input_parameters": {
+    "RECDmeasType": 0,
+    "dateOfBirth": 19690420,
+    "aidType": 0,
+    "tubing": 0,
+    "vent": 0,
+    "earpiece": 0,
+    "coupler": 0,
+    "fittingDepth": 0
+  }
+}

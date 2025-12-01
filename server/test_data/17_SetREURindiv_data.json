@@ -1,0 +1,11 @@
+{
+  "sequence_num": 17,
+  "function": "SetREURindiv",
+  "input_parameters": {
+    "REUR": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "defValues": 0,
+    "dateOfBirth": 19690420,
+    "direction": 0,
+    "mic": 0
+  }
+}

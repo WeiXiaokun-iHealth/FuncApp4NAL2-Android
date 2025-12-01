@@ -1,0 +1,8 @@
+{
+  "sequence_num": 34,
+  "function": "SetAdultChild",
+  "input_parameters": {
+    "adultChild": 0,
+    "dateOfBirth": 20100615
+  }
+}

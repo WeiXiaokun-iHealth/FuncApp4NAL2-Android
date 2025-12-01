@@ -1,0 +1,8 @@
+{
+  "sequence_num": 16,
+  "function": "SetREDDindiv9",
+  "input_parameters": {
+    "REDD9": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "defValues": 0
+  }
+}

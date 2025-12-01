@@ -215,7 +215,7 @@ app.delete('/api/history/:id', (req, res) => {
 // 获取所有测试数据
 app.get('/api/test/run-all', (req, res) => {
   try {
-    const testDataDir = path.join(__dirname, '../../FuncApp4NAL2/input_json_data');
+    const testDataDir = path.join(__dirname, 'test_data');
     const files = fs.readdirSync(testDataDir).filter(f => f.endsWith('.json')).sort();
     
     const allTests = files.map(file => {

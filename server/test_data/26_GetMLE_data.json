@@ -1,0 +1,9 @@
+{
+  "sequence_num": 26,
+  "function": "GetMLE",
+  "input_parameters": {
+    "aidType": 0,
+    "direction": 0,
+    "mic": 0
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "sequence_num": 14,
+  "function": "GetREURindiv9",
+  "input_parameters": {
+    "defValues": 0,
+    "dateOfBirth": 19690420,
+    "direction": 0,
+    "mic": 0
+  }
+}
