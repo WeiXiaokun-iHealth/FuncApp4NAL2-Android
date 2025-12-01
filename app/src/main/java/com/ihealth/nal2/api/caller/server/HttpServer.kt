@@ -501,7 +501,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("coupler").asInt,
                         params.get("fittingDepth").asInt
                     )
-                    result.add("RECDh", doubleArrayToJsonArray(recdh))
+                    result.add("RECDh9", doubleArrayToJsonArray(recdh))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GetRECDh_indiv9完成")
                 }
                 
@@ -531,7 +531,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("coupler").asInt,
                         params.get("fittingDepth").asInt
                     )
-                    result.add("RECDt", doubleArrayToJsonArray(recdt))
+                    result.add("RECDt9", doubleArrayToJsonArray(recdt))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GetRECDt_indiv9完成")
                 }
                 
@@ -541,7 +541,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 }
                 
                 "SetRECDh_indiv9_NL2" -> {
-                    nal2Manager.setRECDhIndiv9(jsonArrayToDoubleArray(params.getAsJsonArray("RECDh")))
+                    nal2Manager.setRECDhIndiv9(jsonArrayToDoubleArray(params.getAsJsonArray("RECDh9")))
                     result.addProperty("success", true)
                 }
                 
@@ -551,7 +551,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 }
                 
                 "SetRECDt_indiv9_NL2" -> {
-                    nal2Manager.setRECDtIndiv9(jsonArrayToDoubleArray(params.getAsJsonArray("RECDt")))
+                    nal2Manager.setRECDtIndiv9(jsonArrayToDoubleArray(params.getAsJsonArray("RECDt9")))
                     result.addProperty("success", true)
                 }
                 
@@ -692,7 +692,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "GetREDDindiv9" -> {
                     val redd = nal2Manager.getREDDindiv9(params.get("defValues").asInt)
-                    result.add("REDD", doubleArrayToJsonArray(redd))
+                    result.add("REDD9", doubleArrayToJsonArray(redd))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GetREDDindiv9完成")
                 }
                 
@@ -714,7 +714,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("direction").asInt,
                         params.get("mic").asInt
                     )
-                    result.add("REUR", doubleArrayToJsonArray(reur))
+                    result.add("REUR9", doubleArrayToJsonArray(reur))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GetREURindiv9完成")
                 }
                 
@@ -728,7 +728,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "SetREDDindiv9" -> {
                     nal2Manager.setREDDindiv9(
-                        jsonArrayToDoubleArray(params.getAsJsonArray("REDD")),
+                        jsonArrayToDoubleArray(params.getAsJsonArray("REDD9")),
                         params.get("defValues").asInt
                     )
                     result.addProperty("success", true)
@@ -747,7 +747,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "SetREURindiv9" -> {
                     nal2Manager.setREURindiv9(
-                        jsonArrayToDoubleArray(params.getAsJsonArray("REUR")),
+                        jsonArrayToDoubleArray(params.getAsJsonArray("REUR9")),
                         params.get("defValues").asInt,
                         params.get("dateOfBirth").asInt,
                         params.get("direction").asInt,
@@ -811,7 +811,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "GetTubing9_NL2" -> {
                     val tubing = nal2Manager.getTubing9(params.get("tubing").asInt)
-                    result.add("Tubing", doubleArrayToJsonArray(tubing))
+                    result.add("Tubing9", doubleArrayToJsonArray(tubing))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GetTubing9完成")
                 }
                 
@@ -823,7 +823,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "GetVentOut9_NL2" -> {
                     val ventOut = nal2Manager.getVentOut9(params.get("vent").asInt)
-                    result.add("VentOut", doubleArrayToJsonArray(ventOut))
+                    result.add("VentOut9", doubleArrayToJsonArray(ventOut))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GetVentOut9完成")
                 }
                 
