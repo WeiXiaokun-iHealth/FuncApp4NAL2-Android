@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#F5F5F5">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- 标题 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="NAL2 HTTP API 服务器"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- 服务器状态卡片 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- 状态标题 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <View
+                        android:id="@+id/statusDot"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@drawable/status_dot_connected"
+                        android:layout_marginEnd="10dp"/>
+
+                    <TextView
+                        android:id="@+id/tvStatus"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="服务器运行中"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"/>
+
+                    <Button
+                        android:id="@+id/btnRefresh"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔄 刷新"
+                        android:textSize="14sp"
+                        android:minHeight="0dp"
+                        android:paddingVertical="6dp"
+                        android:paddingHorizontal="12dp"
+                        style="@style/Widget.Material3.Button.TextButton"/>
+                </LinearLayout>
+
+                <!-- IP 地址 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="IP地址"
+                        android:textSize="14sp"
+                        android:textColor="#666666"/>
+
+                    <TextView
+                        android:id="@+id/tvIpAddress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="192.168.1.100"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:gravity="end"
+                        android:fontFamily="monospace"/>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#F0F0F0"/>
+
+                <!-- 端口 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="端口"
+                        android:textSize="14sp"
+                        android:textColor="#666666"/>
+
+                    <TextView
+                        android:id="@+id/tvPort"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="8080"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"
+                        android:gravity="end"
+                        android:fontFamily="monospace"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- API 端点卡片 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardApiEndpoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📡 API 端点"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="12dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="#F8F9FA"
+                    android:padding="12dp"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="POST"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="#007AFF"
+                        android:layout_marginBottom="4dp"/>
+
+                    <TextView
+                        android:id="@+id/tvApiUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="http://192.168.1.100:8080/api/nal2/process"
+                        android:textSize="12sp"
+                        android:textColor="#333333"
+                        android:fontFamily="monospace"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnCopyApi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📋 复制 API 地址"
+                    android:textSize="14sp"
+                    style="@style/Widget.Material3.Button"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 最近请求卡片 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardLastRequest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📥 最近请求"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="12dp"/>
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:background="#F8F9FA"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tvLastRequest"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="11sp"
+                        android:textColor="#333333"
+                        android:fontFamily="monospace"/>
+                </ScrollView>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 最近响应卡片 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardLastResponse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📤 最近响应"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="12dp"/>
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:background="#F8F9FA"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tvLastResponse"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="11sp"
+                        android:textColor="#333333"
+                        android:fontFamily="monospace"/>
+                </ScrollView>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 日志卡片 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:id="@+id/tvLogsTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📋 应用日志 (0)"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="12dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <Button
+                        android:id="@+id/btnClearLogs"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🗑️ 清除"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="8dp"
+                        style="@style/Widget.Material3.Button.OutlinedButton"/>
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvLogs"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:background="#F8F9FA"
+                    android:padding="12dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 版本信息 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="40dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FuncApp4NAL2"
+                android:textSize="12sp"
+                android:textColor="#999999"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="v1.0.0 (Build 1)"
+                android:textSize="12sp"
+                android:textColor="#999999"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HTTP API Server"
+                android:textSize="12sp"
+                android:textColor="#999999"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
