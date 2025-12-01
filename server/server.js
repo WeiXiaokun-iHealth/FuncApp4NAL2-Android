@@ -212,6 +212,25 @@ app.delete('/api/history/:id', (req, res) => {
   }
 });
 
+// 获取所有测试数据
+app.get('/api/test/run-all', (req, res) => {
+  try {
+    const testDataDir = path.join(__dirname, '../../FuncApp4NAL2/input_json_data');
+    const files = fs.readdirSync(testDataDir).filter(f => f.endsWith('.json')).sort();
+    
+    const allTests = files.map(file => {
+      const filePath = path.join(testDataDir, file);
+      const content = fs.readFileSync(filePath, 'utf8');
+      return JSON.parse(content);
+    });
+    
+    res.json(allTests);
+  } catch (error) {
+    console.error('读取测试数据失败:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // 处理NAL2函数调用（通过WebSocket转发到App）
 app.post('/api/nal2/process', async (req, res) => {
   try {

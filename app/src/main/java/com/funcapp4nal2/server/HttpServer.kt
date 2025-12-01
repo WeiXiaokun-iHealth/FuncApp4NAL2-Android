@@ -217,18 +217,18 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "CompressionThreshold_NL2" -> {
                     val ct = DoubleArray(19)
-                    val bandwidth = params.get("bandwidth").asInt
-                    val selection = params.get("selection").asInt
+                    val bandwidth = params.get("bandWidth")?.asInt ?: params.get("bandwidth")?.asInt ?: 0
+                    val selection = params.get("selection")?.asInt ?: 0
                     val calcCh = jsonArrayToIntArray(params.getAsJsonArray("calcCh"))
                     
                     nal2Manager.setCompressionThreshold(
                         ct,
                         bandwidth,
                         selection,
-                        params.get("WBCT").asInt,
-                        params.get("aidType").asInt,
-                        params.get("direction").asInt,
-                        params.get("mic").asInt,
+                        params.get("WBCT")?.asInt ?: 0,
+                        params.get("aidType")?.asInt ?: 0,
+                        params.get("direction")?.asInt ?: 0,
+                        params.get("mic")?.asInt ?: 0,
                         calcCh
                     )
                     result.add("CT", doubleArrayToJsonArray(ct))
