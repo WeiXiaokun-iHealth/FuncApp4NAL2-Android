@@ -1,19 +1,27 @@
 package com.funcapp4nal2
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.funcapp4nal2.server.HttpServer
+import com.funcapp4nal2.utils.GlobalVariables
 import com.google.gson.GsonBuilder
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,8 +42,38 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cardLastResponse: View
     private lateinit var rvLogs: RecyclerView
     private lateinit var btnClearLogs: Button
+    private lateinit var btnDownloadLogs: Button
+    private lateinit var btnFullScreenLogs: Button
     private lateinit var btnCopyApi: Button
     private lateinit var btnRefresh: Button
+    
+    // 折叠/展开相关
+    private lateinit var headerApiEndpoint: View
+    private lateinit var iconApiEndpoint: TextView
+    private lateinit var contentApiEndpoint: View
+    private var isApiEndpointExpanded = false
+    
+    private lateinit var headerLastRequest: View
+    private lateinit var iconLastRequest: TextView
+    private var isLastRequestExpanded = false
+    
+    private lateinit var headerLastResponse: View
+    private lateinit var iconLastResponse: TextView
+    private var isLastResponseExpanded = false
+    
+    private val STORAGE_PERMISSION_CODE = 100
+    
+    // 全局变量 UI 控件
+    private lateinit var tvCFArrayValue: TextView
+    private lateinit var tvCFArrayInfo: TextView
+    private lateinit var tvFreqInChValue: TextView
+    private lateinit var tvFreqInChInfo: TextView
+    private lateinit var tvCTValue: TextView
+    private lateinit var tvCTInfo: TextView
+    private lateinit var btnDeleteCFArray: Button
+    private lateinit var btnDeleteFreqInCh: Button
+    private lateinit var btnDeleteCT: Button
+    private lateinit var btnClearAllGlobalVars: Button
     
     private val gson = GsonBuilder().setPrettyPrinting().create()
 
@@ -61,8 +99,71 @@ class MainActivity : AppCompatActivity() {
         cardLastResponse = findViewById(R.id.cardLastResponse)
         rvLogs = findViewById(R.id.rvLogs)
         btnClearLogs = findViewById(R.id.btnClearLogs)
+        btnDownloadLogs = findViewById(R.id.btnDownloadLogs)
+        btnFullScreenLogs = findViewById(R.id.btnFullScreenLogs)
         btnCopyApi = findViewById(R.id.btnCopyApi)
         btnRefresh = findViewById(R.id.btnRefresh)
+        
+        // 设置 TextView 可滚动
+        tvLastRequest.movementMethod = android.text.method.ScrollingMovementMethod()
+        tvLastResponse.movementMethod = android.text.method.ScrollingMovementMethod()
+        
+        // 处理触摸事件，防止滚动冲突
+        tvLastRequest.setOnTouchListener { v, event ->
+            v.parent.requestDisallowInterceptTouchEvent(true)
+            when (event.action and android.view.MotionEvent.ACTION_MASK) {
+                android.view.MotionEvent.ACTION_UP -> {
+                    v.parent.requestDisallowInterceptTouchEvent(false)
+                }
+            }
+            false
+        }
+        
+        tvLastResponse.setOnTouchListener { v, event ->
+            v.parent.requestDisallowInterceptTouchEvent(true)
+            when (event.action and android.view.MotionEvent.ACTION_MASK) {
+                android.view.MotionEvent.ACTION_UP -> {
+                    v.parent.requestDisallowInterceptTouchEvent(false)
+                }
+            }
+            false
+        }
+        
+        // 全局变量控件
+        tvCFArrayValue = findViewById(R.id.tvCFArrayValue)
+        tvCFArrayInfo = findViewById(R.id.tvCFArrayInfo)
+        tvFreqInChValue = findViewById(R.id.tvFreqInChValue)
+        tvFreqInChInfo = findViewById(R.id.tvFreqInChInfo)
+        tvCTValue = findViewById(R.id.tvCTValue)
+        tvCTInfo = findViewById(R.id.tvCTInfo)
+        btnDeleteCFArray = findViewById(R.id.btnDeleteCFArray)
+        btnDeleteFreqInCh = findViewById(R.id.btnDeleteFreqInCh)
+        btnDeleteCT = findViewById(R.id.btnDeleteCT)
+        btnClearAllGlobalVars = findViewById(R.id.btnClearAllGlobalVars)
+        
+        // 折叠/展开控件
+        headerApiEndpoint = findViewById(R.id.headerApiEndpoint)
+        iconApiEndpoint = findViewById(R.id.iconApiEndpoint)
+        contentApiEndpoint = findViewById(R.id.contentApiEndpoint)
+        
+        headerLastRequest = findViewById(R.id.headerLastRequest)
+        iconLastRequest = findViewById(R.id.iconLastRequest)
+        
+        headerLastResponse = findViewById(R.id.headerLastResponse)
+        iconLastResponse = findViewById(R.id.iconLastResponse)
+        
+        // 设置初始折叠状态
+        contentApiEndpoint.visibility = View.GONE
+        
+        // 初始化全局变量显示
+        updateGlobalVariablesUI()
+        
+        // 添加全局变量监听器
+        GlobalVariables.addListener { state ->
+            runOnUiThread {
+                updateGlobalVariablesUI()
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -130,7 +231,108 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateGlobalVariablesUI() {
+        val state = GlobalVariables.getAllVariables()
+        
+        // CFArray
+        if (state.CFArray.isEmpty()) {
+            tvCFArrayValue.text = "空 []"
+            tvCFArrayInfo.text = "长度: 0"
+            btnDeleteCFArray.isEnabled = false
+            btnDeleteCFArray.alpha = 0.5f
+        } else {
+            tvCFArrayValue.text = "[${state.CFArray.joinToString(", ") { "%.2f".format(it) }}]"
+            tvCFArrayInfo.text = "长度: ${state.CFArray.size}"
+            btnDeleteCFArray.isEnabled = true
+            btnDeleteCFArray.alpha = 1.0f
+        }
+        
+        // FreqInCh
+        if (state.FreqInCh.isEmpty()) {
+            tvFreqInChValue.text = "空 []"
+            tvFreqInChInfo.text = "长度: 0"
+            btnDeleteFreqInCh.isEnabled = false
+            btnDeleteFreqInCh.alpha = 0.5f
+        } else {
+            tvFreqInChValue.text = "[${state.FreqInCh.joinToString(", ")}]"
+            tvFreqInChInfo.text = "长度: ${state.FreqInCh.size}"
+            btnDeleteFreqInCh.isEnabled = true
+            btnDeleteFreqInCh.alpha = 1.0f
+        }
+        
+        // CT
+        if (state.CT.isEmpty()) {
+            tvCTValue.text = "空 []"
+            tvCTInfo.text = "长度: 0"
+            btnDeleteCT.isEnabled = false
+            btnDeleteCT.alpha = 0.5f
+        } else {
+            tvCTValue.text = "[${state.CT.joinToString(", ") { "%.2f".format(it) }}]"
+            tvCTInfo.text = "长度: ${state.CT.size}"
+            btnDeleteCT.isEnabled = true
+            btnDeleteCT.alpha = 1.0f
+        }
+        
+        // 清空全部按钮
+        val hasAnyData = state.CFArray.isNotEmpty() || state.FreqInCh.isNotEmpty() || state.CT.isNotEmpty()
+        btnClearAllGlobalVars.isEnabled = hasAnyData
+        btnClearAllGlobalVars.alpha = if (hasAnyData) 1.0f else 0.5f
+    }
+    
     private fun setupListeners() {
+        // 全局变量按钮
+        btnDeleteCFArray.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("确认删除")
+                .setMessage("确定要删除 CFArray 吗？")
+                .setPositiveButton("删除") { _, _ ->
+                    GlobalVariables.deleteCFArray()
+                    Toast.makeText(this, "CFArray 已删除", Toast.LENGTH_SHORT).show()
+                    addLog("INFO", "CFArray 已删除")
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+        
+        btnDeleteFreqInCh.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("确认删除")
+                .setMessage("确定要删除 FreqInCh 吗？")
+                .setPositiveButton("删除") { _, _ ->
+                    GlobalVariables.deleteFreqInCh()
+                    Toast.makeText(this, "FreqInCh 已删除", Toast.LENGTH_SHORT).show()
+                    addLog("INFO", "FreqInCh 已删除")
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+        
+        btnDeleteCT.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("确认删除")
+                .setMessage("确定要删除 CT 吗？")
+                .setPositiveButton("删除") { _, _ ->
+                    GlobalVariables.deleteCT()
+                    Toast.makeText(this, "CT 已删除", Toast.LENGTH_SHORT).show()
+                    addLog("INFO", "CT 已删除")
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+        
+        btnClearAllGlobalVars.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("确认清空")
+                .setMessage("确定要清空所有全局变量吗？")
+                .setPositiveButton("清空") { _, _ ->
+                    GlobalVariables.clearAll()
+                    Toast.makeText(this, "所有全局变量已清空", Toast.LENGTH_SHORT).show()
+                    addLog("INFO", "所有全局变量已清空")
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+        
         btnClearLogs.setOnClickListener {
             if (logs.isEmpty()) {
                 Toast.makeText(this, "没有日志可清除", Toast.LENGTH_SHORT).show()
@@ -164,6 +366,144 @@ class MainActivity : AppCompatActivity() {
             tvApiUrl.text = "http://$ipAddress:8080/api/nal2/process"
             addLog("INFO", "服务器状态已刷新")
             Toast.makeText(this, "已刷新", Toast.LENGTH_SHORT).show()
+        }
+        
+        // 全屏查看日志
+        btnFullScreenLogs.setOnClickListener {
+            showFullScreenLogs()
+        }
+        
+        // 下载日志
+        btnDownloadLogs.setOnClickListener {
+            if (logs.isEmpty()) {
+                Toast.makeText(this, "没有日志可下载", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            downloadLogs()
+        }
+        
+        // API 端点折叠/展开
+        headerApiEndpoint.setOnClickListener {
+            toggleSection(contentApiEndpoint, iconApiEndpoint, isApiEndpointExpanded)
+            isApiEndpointExpanded = !isApiEndpointExpanded
+        }
+        
+        // 最近请求折叠/展开
+        headerLastRequest.setOnClickListener {
+            toggleSection(tvLastRequest, iconLastRequest, isLastRequestExpanded)
+            isLastRequestExpanded = !isLastRequestExpanded
+        }
+        
+        // 最近响应折叠/展开
+        headerLastResponse.setOnClickListener {
+            toggleSection(tvLastResponse, iconLastResponse, isLastResponseExpanded)
+            isLastResponseExpanded = !isLastResponseExpanded
+        }
+    }
+    
+    private fun toggleSection(content: View, icon: TextView, isExpanded: Boolean) {
+        if (isExpanded) {
+            // 折叠
+            content.visibility = View.GONE
+            icon.text = "▶"
+        } else {
+            // 展开
+            content.visibility = View.VISIBLE
+            icon.text = "▼"
+        }
+    }
+    
+    private fun showFullScreenLogs() {
+        if (logs.isEmpty()) {
+            Toast.makeText(this, "暂无日志", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val logsText = logs.joinToString("\n") { log ->
+            "[${log.timestamp}] [${log.type}] ${log.message}"
+        }
+        
+        val dialogView = layoutInflater.inflate(android.R.layout.simple_list_item_1, null)
+        val textView = TextView(this).apply {
+            text = logsText
+            textSize = 11f
+            setTextColor(ContextCompat.getColor(context, android.R.color.black))
+            setTypeface(null, android.graphics.Typeface.NORMAL)
+            typeface = android.graphics.Typeface.MONOSPACE
+            setPadding(40, 40, 40, 40)
+        }
+        
+        val scrollView = android.widget.ScrollView(this).apply {
+            addView(textView)
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("📋 全部日志 (${logs.size})")
+            .setView(scrollView)
+            .setPositiveButton("关闭", null)
+            .setNeutralButton("复制全部") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("Logs", logsText)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "日志已复制到剪贴板", Toast.LENGTH_SHORT).show()
+            }
+            .show()
+    }
+    
+    private fun downloadLogs() {
+        try {
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "NAL2_Logs_$timestamp.txt"
+            
+            val logsText = logs.joinToString("\n") { log ->
+                "[${log.timestamp}] [${log.type}] ${log.message}"
+            }
+            
+            // Android 10+ 使用 MediaStore
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(downloadsDir, fileName)
+                file.writeText(logsText)
+                
+                Toast.makeText(this, "日志已保存到: Downloads/$fileName", Toast.LENGTH_LONG).show()
+                addLog("SUCCESS", "日志已下载: $fileName")
+            } else {
+                // Android 9 及以下需要权限
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        STORAGE_PERMISSION_CODE
+                    )
+                    return
+                }
+                
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(downloadsDir, fileName)
+                file.writeText(logsText)
+                
+                Toast.makeText(this, "日志已保存到: Downloads/$fileName", Toast.LENGTH_LONG).show()
+                addLog("SUCCESS", "日志已下载: $fileName")
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "下载失败: ${e.message}", Toast.LENGTH_LONG).show()
+            addLog("ERROR", "日志下载失败: ${e.message}")
+        }
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                downloadLogs()
+            } else {
+                Toast.makeText(this, "需要存储权限才能下载日志", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -135,6 +135,222 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- 全局变量卡片 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="3dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- 标题和清空按钮 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🔧 全局变量"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"/>
+
+                    <Button
+                        android:id="@+id/btnClearAllGlobalVars"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="清空全部"
+                        android:textSize="11sp"
+                        android:minHeight="0dp"
+                        android:paddingVertical="4dp"
+                        android:paddingHorizontal="8dp"
+                        android:backgroundTint="#FF3B30"
+                        style="@style/Widget.Material3.Button"/>
+                </LinearLayout>
+
+                <!-- CFArray -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="#F8F9FA"
+                    android:padding="12dp"
+                    android:layout_marginBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="CFArray (交叉频率)"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#007AFF"/>
+
+                        <Button
+                            android:id="@+id/btnDeleteCFArray"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="删除"
+                            android:textSize="11sp"
+                            android:minHeight="0dp"
+                            android:paddingVertical="4dp"
+                            android:paddingHorizontal="8dp"
+                            android:backgroundTint="#FF9500"
+                            style="@style/Widget.Material3.Button"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvCFArrayValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="空 []"
+                        android:textSize="10sp"
+                        android:textColor="#333333"
+                        android:fontFamily="monospace"
+                        android:layout_marginBottom="6dp"/>
+
+                    <TextView
+                        android:id="@+id/tvCFArrayInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="长度: 0"
+                        android:textSize="10sp"
+                        android:textColor="#999999"/>
+                </LinearLayout>
+
+                <!-- FreqInCh -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="#F8F9FA"
+                    android:padding="12dp"
+                    android:layout_marginBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="FreqInCh (频率通道映射)"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#007AFF"/>
+
+                        <Button
+                            android:id="@+id/btnDeleteFreqInCh"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="删除"
+                            android:textSize="11sp"
+                            android:minHeight="0dp"
+                            android:paddingVertical="4dp"
+                            android:paddingHorizontal="8dp"
+                            android:backgroundTint="#FF9500"
+                            style="@style/Widget.Material3.Button"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvFreqInChValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="空 []"
+                        android:textSize="10sp"
+                        android:textColor="#333333"
+                        android:fontFamily="monospace"
+                        android:layout_marginBottom="6dp"/>
+
+                    <TextView
+                        android:id="@+id/tvFreqInChInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="长度: 0"
+                        android:textSize="10sp"
+                        android:textColor="#999999"/>
+                </LinearLayout>
+
+                <!-- CT -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="#F8F9FA"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="CT (压缩阈值)"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#007AFF"/>
+
+                        <Button
+                            android:id="@+id/btnDeleteCT"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="删除"
+                            android:textSize="11sp"
+                            android:minHeight="0dp"
+                            android:paddingVertical="4dp"
+                            android:paddingHorizontal="8dp"
+                            android:backgroundTint="#FF9500"
+                            style="@style/Widget.Material3.Button"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvCTValue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="空 []"
+                        android:textSize="10sp"
+                        android:textColor="#333333"
+                        android:fontFamily="monospace"
+                        android:layout_marginBottom="6dp"/>
+
+                    <TextView
+                        android:id="@+id/tvCTInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="长度: 0"
+                        android:textSize="10sp"
+                        android:textColor="#999999"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- API 端点卡片 -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardApiEndpoint"
@@ -150,49 +366,76 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="📡 API 端点"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#333333"
-                    android:layout_marginBottom="12dp"/>
-
                 <LinearLayout
+                    android:id="@+id/headerApiEndpoint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:background="#F8F9FA"
-                    android:padding="12dp"
-                    android:layout_marginBottom="12dp">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
 
                     <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📡 API 端点"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"/>
+
+                    <TextView
+                        android:id="@+id/iconApiEndpoint"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="POST"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:textColor="#007AFF"
-                        android:layout_marginBottom="4dp"/>
-
-                    <TextView
-                        android:id="@+id/tvApiUrl"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="获取中..."
-                        android:textSize="12sp"
-                        android:textColor="#333333"
-                        android:fontFamily="monospace"/>
+                        android:text="▶"
+                        android:textSize="14sp"
+                        android:textColor="#666666"/>
                 </LinearLayout>
 
-                <Button
-                    android:id="@+id/btnCopyApi"
+                <LinearLayout
+                    android:id="@+id/contentApiEndpoint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="📋 复制 API 地址"
-                    android:textSize="14sp"
-                    style="@style/Widget.Material3.Button"/>
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="#F8F9FA"
+                        android:padding="12dp"
+                        android:layout_marginBottom="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="POST"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="#007AFF"
+                            android:layout_marginBottom="4dp"/>
+
+                        <TextView
+                            android:id="@+id/tvApiUrl"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="获取中..."
+                            android:textSize="12sp"
+                            android:textColor="#333333"
+                            android:fontFamily="monospace"/>
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btnCopyApi"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="📋 复制 API 地址"
+                        android:textSize="14sp"
+                        style="@style/Widget.Material3.Button"/>
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -212,29 +455,48 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/headerLastRequest"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="📥 最近请求"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#333333"
-                    android:layout_marginBottom="12dp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
 
-                <ScrollView
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📥 最近请求"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"/>
+
+                    <TextView
+                        android:id="@+id/iconLastRequest"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="▶"
+                        android:textSize="14sp"
+                        android:textColor="#666666"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvLastRequest"
                     android:layout_width="match_parent"
                     android:layout_height="200dp"
                     android:background="#F8F9FA"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/tvLastRequest"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="11sp"
-                        android:textColor="#333333"
-                        android:fontFamily="monospace"/>
-                </ScrollView>
+                    android:padding="12dp"
+                    android:textSize="11sp"
+                    android:textColor="#333333"
+                    android:fontFamily="monospace"
+                    android:scrollbars="vertical|horizontal"
+                    android:scrollHorizontally="true"
+                    android:maxLines="1000"
+                    android:visibility="gone"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -254,29 +516,48 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/headerLastResponse"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="📤 最近响应"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#333333"
-                    android:layout_marginBottom="12dp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
 
-                <ScrollView
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📤 最近响应"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#333333"/>
+
+                    <TextView
+                        android:id="@+id/iconLastResponse"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="▶"
+                        android:textSize="14sp"
+                        android:textColor="#666666"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvLastResponse"
                     android:layout_width="match_parent"
                     android:layout_height="200dp"
                     android:background="#F8F9FA"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/tvLastResponse"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="11sp"
-                        android:textColor="#333333"
-                        android:fontFamily="monospace"/>
-                </ScrollView>
+                    android:padding="12dp"
+                    android:textSize="11sp"
+                    android:textColor="#333333"
+                    android:fontFamily="monospace"
+                    android:scrollbars="vertical|horizontal"
+                    android:scrollHorizontally="true"
+                    android:maxLines="1000"
+                    android:visibility="gone"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -311,14 +592,36 @@
                     android:layout_marginBottom="12dp">
 
                     <Button
+                        android:id="@+id/btnDownloadLogs"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="💾 下载"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="4dp"
+                        android:backgroundTint="#34C759"
+                        style="@style/Widget.Material3.Button"/>
+
+                    <Button
+                        android:id="@+id/btnFullScreenLogs"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🔍 全屏"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="4dp"
+                        android:backgroundTint="#007AFF"
+                        style="@style/Widget.Material3.Button"/>
+
+                    <Button
                         android:id="@+id/btnClearLogs"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="🗑️ 清除"
                         android:textSize="12sp"
-                        android:layout_marginEnd="8dp"
-                        style="@style/Widget.Material3.Button.OutlinedButton"/>
+                        android:backgroundTint="#FF3B30"
+                        style="@style/Widget.Material3.Button"/>
                 </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
@@ -364,4 +667,4 @@
                 android:textColor="#999999"/>
         </LinearLayout>
     </LinearLayout>
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

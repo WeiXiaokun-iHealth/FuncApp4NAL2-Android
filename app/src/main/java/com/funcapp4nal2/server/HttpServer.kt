@@ -3,6 +3,7 @@ package com.funcapp4nal2.server
 import android.content.Context
 import android.util.Log
 import com.funcapp4nal2.nal2.Nal2Manager
+import com.funcapp4nal2.utils.GlobalVariables
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import fi.iki.elonen.NanoHTTPD
@@ -198,9 +199,13 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val freqInCh = IntArray(19)
                     val crossResult = nal2Manager.getCrossOverFrequencies(cfArr, channels, ac, bc, freqInCh)
                     
+                    // 自动保存到全局变量
+                    GlobalVariables.setCFArray(crossResult.CFArray)
+                    GlobalVariables.setFreqInCh(crossResult.FreqInCh)
+                    
                     result.add("CFArray", doubleArrayToJsonArray(crossResult.CFArray))
                     result.add("FreqInCh", intArrayToJsonArray(crossResult.FreqInCh))
-                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: CrossOverFrequencies完成")
+                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: CrossOverFrequencies完成 (已保存到全局变量)")
                 }
                 
                 "CenterFrequencies" -> {
@@ -231,8 +236,12 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("mic")?.asInt ?: 0,
                         calcCh
                     )
+                    
+                    // 自动保存到全局变量
+                    GlobalVariables.setCT(ct)
+                    
                     result.add("CT", doubleArrayToJsonArray(ct))
-                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: CompressionThreshold完成")
+                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: CompressionThreshold完成 (已保存到全局变量)")
                 }
                 
                 "setBWC" -> {
