@@ -15,6 +15,9 @@ NC='\033[0m' # No Color
 # 项目根目录
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
+# WiFi设备IP配置文件
+WIFI_CONFIG_FILE="$PROJECT_ROOT/.adb_wifi_device"
+
 echo -e "${BLUE}🚀 FuncApp4NAL2 Android应用运行脚本${NC}"
 echo "================================================"
 echo ""
@@ -33,10 +36,44 @@ if [ "$DEVICES" -eq 0 ]; then
     echo -e "${YELLOW}⚠️  未检测到Android设备或模拟器${NC}"
     echo ""
     
-    # 尝试通过WiFi连接
-    read -p "是否尝试通过WiFi连接设备? [Y/n]: " try_wifi
-    if [ "$try_wifi" != "n" ] && [ "$try_wifi" != "N" ]; then
-        read -p "请输入设备IP地址: " device_ip
+    # 检查是否有保存的WiFi设备IP
+    SAVED_IP=""
+    if [ -f "$WIFI_CONFIG_FILE" ]; then
+        SAVED_IP=$(cat "$WIFI_CONFIG_FILE" 2>/dev/null | tr -d '\n\r')
+    fi
+    
+    # 如果有保存的IP，先尝试自动连接
+    if [ -n "$SAVED_IP" ]; then
+        echo -e "${BLUE}🔌 尝试连接到上次使用的设备 $SAVED_IP:5555...${NC}"
+        adb connect "$SAVED_IP:5555" > /dev/null 2>&1
+        sleep 2
+        
+        # 检查是否连接成功
+        DEVICES=$(adb devices | grep -v "List" | grep "device$" | wc -l)
+        if [ "$DEVICES" -gt 0 ]; then
+            echo -e "${GREEN}✅ 自动连接成功！${NC}"
+            DEVICE_NAME=$(adb devices | grep "device$" | awk '{print $1}')
+            echo -e "${GREEN}✅ 检测到设备: $DEVICE_NAME${NC}"
+            echo ""
+            # 跳转到菜单
+        else
+            echo -e "${YELLOW}⚠️  自动连接失败，可能需要重新设置WiFi调试${NC}"
+            echo ""
+        fi
+    fi
+    
+    # 如果自动连接失败或没有保存的IP，询问用户
+    if [ "$DEVICES" -eq 0 ]; then
+        # 尝试通过WiFi连接
+        read -p "是否尝试通过WiFi连接设备? [Y/n]: " try_wifi
+        if [ "$try_wifi" != "n" ] && [ "$try_wifi" != "N" ]; then
+            # 如果有保存的IP，显示为默认值
+            if [ -n "$SAVED_IP" ]; then
+                read -p "请输入设备IP地址 [默认: $SAVED_IP]: " device_ip
+                device_ip=${device_ip:-$SAVED_IP}
+            else
+                read -p "请输入设备IP地址: " device_ip
+            fi
         
         if [ -n "$device_ip" ]; then
             echo ""
@@ -54,20 +91,61 @@ if [ "$DEVICES" -eq 0 ]; then
             if [ "$DEVICES" -eq 0 ]; then
                 echo -e "${RED}❌ WiFi连接失败${NC}"
                 echo ""
-                echo "请确保："
-                echo "  1. 设备和电脑在同一WiFi网络"
-                echo "  2. 设备已启用USB调试和WiFi调试"
-                echo "  3. IP地址正确"
+                echo -e "${YELLOW}📱 如何启用WiFi调试（手机重启后需要重新设置）：${NC}"
                 echo ""
-                echo "或者："
-                echo "  1. 通过USB连接设备并启用USB调试"
-                echo "  2. 或启动Android模拟器"
+                echo -e "${BLUE}方法1: 通过USB首次连接（推荐）${NC}"
+                echo "  1. 用USB线连接手机到电脑"
+                echo "  2. 手机上启用「开发者选项」->「USB调试」"
+                echo "  3. 运行命令: adb tcpip 5555"
+                echo "  4. 拔掉USB线"
+                echo "  5. 再次运行此脚本，输入手机IP地址"
+                echo ""
+                echo -e "${BLUE}方法2: 使用无线调试（Android 11+）${NC}"
+                echo "  1. 手机进入「开发者选项」->「无线调试」"
+                echo "  2. 启用「无线调试」"
+                echo "  3. 点击「使用配对码配对设备」"
+                echo "  4. 在电脑运行: adb pair <IP>:<配对端口>"
+                echo "  5. 输入配对码"
+                echo "  6. 然后运行: adb connect <IP>:<连接端口>"
+                echo ""
+                echo -e "${BLUE}方法3: 直接USB连接${NC}"
+                echo "  1. 用USB线连接手机到电脑"
+                echo "  2. 启用USB调试"
+                echo "  3. 直接运行此脚本"
                 echo ""
                 echo "当前设备列表："
                 adb devices
-                exit 1
+                echo ""
+                
+                read -p "是否通过USB连接并启用WiFi调试? [Y/n]: " enable_wifi
+                if [ "$enable_wifi" != "n" ] && [ "$enable_wifi" != "N" ]; then
+                    echo ""
+                    echo -e "${BLUE}请用USB连接手机，然后按回车继续...${NC}"
+                    read
+                    
+                    # 检查USB连接
+                    USB_DEVICES=$(adb devices | grep -v "List" | grep "device$" | wc -l)
+                    if [ "$USB_DEVICES" -gt 0 ]; then
+                        echo -e "${GREEN}✅ 检测到USB设备${NC}"
+                        echo -e "${BLUE}正在启用WiFi调试...${NC}"
+                        adb tcpip 5555
+                        sleep 2
+                        echo ""
+                        echo -e "${GREEN}✅ WiFi调试已启用！${NC}"
+                        echo -e "${YELLOW}现在可以拔掉USB线，然后重新运行此脚本${NC}"
+                        exit 0
+                    else
+                        echo -e "${RED}❌ 未检测到USB设备${NC}"
+                        exit 1
+                    fi
+                else
+                    exit 1
+                fi
             else
                 echo -e "${GREEN}✅ WiFi连接成功！${NC}"
+                # 保存成功连接的IP地址
+                echo "$device_ip" > "$WIFI_CONFIG_FILE"
+                echo -e "${BLUE}💾 已保存设备IP地址，下次将自动连接${NC}"
             fi
         else
             echo -e "${RED}❌ 未输入IP地址${NC}"
@@ -82,6 +160,7 @@ if [ "$DEVICES" -eq 0 ]; then
         echo "检查设备连接："
         adb devices
         exit 1
+    fi
     fi
 elif [ "$DEVICES" -eq 1 ]; then
     DEVICE_NAME=$(adb devices | grep "device$" | awk '{print $1}')
@@ -126,21 +205,15 @@ case $choice in
         echo -e "${GREEN}✅ 应用安装成功！${NC}"
         echo ""
         
-        read -p "是否立即启动应用? [Y/n]: " launch
-        if [ "$launch" != "n" ] && [ "$launch" != "N" ]; then
-            echo -e "${BLUE}🚀 启动应用...${NC}"
-            adb shell am start -n com.ihealth.nal2.api.caller/.MainActivity
-            echo ""
-            echo -e "${GREEN}✅ 应用已启动${NC}"
-            echo ""
-            
-            read -p "是否查看实时日志? [Y/n]: " viewlog
-            if [ "$viewlog" != "n" ] && [ "$viewlog" != "N" ]; then
-                echo -e "${BLUE}📋 显示应用日志 (Ctrl+C 退出)...${NC}"
-                echo ""
-                adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
-            fi
-        fi
+        echo -e "${BLUE}🚀 启动应用...${NC}"
+        adb shell am start -n com.ihealth.nal2.api.caller/.MainActivity
+        echo ""
+        echo -e "${GREEN}✅ 应用已启动${NC}"
+        echo ""
+        
+        echo -e "${BLUE}📋 显示应用日志 (Ctrl+C 退出)...${NC}"
+        echo ""
+        adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
         ;;
         
     2)

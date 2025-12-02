@@ -11,3 +11,6 @@ local.properties
 *.apk
 *.ap_
 *.aab
+
+# ADB WiFi device configuration
+.adb_wifi_device
