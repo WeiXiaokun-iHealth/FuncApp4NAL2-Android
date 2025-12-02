@@ -138,7 +138,19 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
             val response = JsonObject().apply {
                 addProperty("sequence_num", sequenceNum)
                 addProperty("function", functionName)
-                addProperty("return", if (result.has("error")) -1 else 0)
+                
+                // 检查是否有直接返回值（函数 25, 32, 33）
+                if (result.has("return")) {
+                    // 将 return 值提升到顶层
+                    val returnValue = result.get("return")
+                    result.remove("return")
+                    add("return", returnValue)
+                } else if (result.has("error")) {
+                    addProperty("return", -1)
+                } else {
+                    addProperty("return", 0)
+                }
+                
                 add("output_parameters", result)
             }
             
@@ -307,32 +319,33 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val channels = params.get("channels").asInt
                     val crossOver = jsonArrayToDoubleArray(params.getAsJsonArray("crossOver"))
                     nal2Manager.setBWC(channels, crossOver)
-                    result.addProperty("success", true)
+                    // Set 系列函数没有返回值，假设成功返回 0
+                    result.addProperty("return", 0)
                 }
                 
                 "SetAdultChild" -> {
                     nal2Manager.setAdultChild(params.get("adultChild").asInt, params.get("dateOfBirth").asInt)
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetExperience" -> {
                     nal2Manager.setExperience(params.get("experience").asInt)
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetCompSpeed" -> {
                     nal2Manager.setCompSpeed(params.get("compSpeed").asInt)
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetTonalLanguage" -> {
                     nal2Manager.setTonalLanguage(params.get("tonal").asInt)
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetGender" -> {
                     nal2Manager.setGender(params.get("gender").asInt)
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "CompressionRatio_NL2" -> {
@@ -547,22 +560,22 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "SetRECDh_indiv_NL2" -> {
                     nal2Manager.setRECDhIndiv(jsonArrayToDoubleArray(params.getAsJsonArray("RECDh")))
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetRECDh_indiv9_NL2" -> {
                     nal2Manager.setRECDhIndiv9(jsonArrayToDoubleArray(params.getAsJsonArray("RECDh9")))
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetRECDt_indiv_NL2" -> {
                     nal2Manager.setRECDtIndiv(jsonArrayToDoubleArray(params.getAsJsonArray("RECDt")))
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetRECDt_indiv9_NL2" -> {
                     nal2Manager.setRECDtIndiv9(jsonArrayToDoubleArray(params.getAsJsonArray("RECDt9")))
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 // IO 曲线相关函数
@@ -733,7 +746,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         jsonArrayToDoubleArray(params.getAsJsonArray("REDD")),
                         params.get("REDD_defValues").asInt
                     )
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetREDDindiv9" -> {
@@ -741,7 +754,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         jsonArrayToDoubleArray(params.getAsJsonArray("REDD9")),
                         params.get("REDD_defValues").asInt
                     )
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetREURindiv" -> {
@@ -752,7 +765,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("direction").asInt,
                         params.get("mic").asInt
                     )
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 "SetREURindiv9" -> {
@@ -763,7 +776,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("direction").asInt,
                         params.get("mic").asInt
                     )
-                    result.addProperty("success", true)
+                    result.addProperty("return", 0)
                 }
                 
                 // 其他高级函数
@@ -791,8 +804,9 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("vent").asInt,
                         params.get("RECDmeasType").asInt
                     )
-                    result.addProperty("Gain", gain)
-                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GainAt完成")
+                    // Function 25: Return Gain value directly in return field, not as output parameter
+                    result.addProperty("return", gain)
+                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GainAt完成 (返回值直接返回)")
                 }
                 
                 "GetMLE" -> {
@@ -841,8 +855,9 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val reag = jsonArrayToDoubleArray(params.getAsJsonArray("REAG"))
                     val limit = jsonArrayToDoubleArray(params.getAsJsonArray("Limit"))
                     val si = nal2Manager.getSI(params.get("s").asInt, reag, limit)
-                    result.addProperty("SI", si)
-                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: Get_SI完成")
+                    // Function 32: Return SI value directly in return field, not as output parameter
+                    result.addProperty("return", si)
+                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: Get_SI完成 (返回值直接返回)")
                 }
                 
                 "Get_SII" -> {
@@ -861,8 +876,9 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         reagm,
                         reur
                     )
-                    result.addProperty("SII", sii)
-                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: Get_SII完成")
+                    // Function 33: Return SII value directly in return field, not as output parameter
+                    result.addProperty("return", sii)
+                    onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: Get_SII完成 (返回值直接返回)")
                 }
                 
                 else -> {
