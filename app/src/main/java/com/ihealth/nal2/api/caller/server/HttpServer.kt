@@ -2,7 +2,7 @@ package com.ihealth.nal2.api.caller.server
 
 import android.content.Context
 import android.util.Log
-import com.ihealth.nal2.api.caller.nal2.Nal2Manager
+import com.nal2.Nal2Manager
 import com.ihealth.nal2.api.caller.utils.GlobalVariables
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -20,8 +20,8 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
     
     init {
         // 连接 Nal2Manager 的日志到 HttpServer 的日志系统
-        nal2Manager.onLog = { type, message ->
-            onLog?.invoke(type, message)
+        Nal2Manager.setLogCallback { _, level, message ->
+            onLog?.invoke(level, message)
         }
     }
     
