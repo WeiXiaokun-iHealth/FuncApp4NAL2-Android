@@ -231,7 +231,7 @@ public class Nal2Manager {
     public double[] getRECDhIndiv(int RECDmeasType, int dateOfBirth, int aidType, int tubing, int coupler,
             int fittingDepth) {
         try {
-            double[] recdh = new double[9];
+            double[] recdh = new double[19];
             // 需要添加 coupler2 参数 (第8个参数)
             OutputResult result = NativeManager.getInstance(context).GetRECDh_indiv_NL2(recdh, RECDmeasType,
                     dateOfBirth, aidType, tubing, coupler, fittingDepth, coupler);
@@ -242,13 +242,14 @@ public class Nal2Manager {
         }
     }
 
-    public double[] getRECDhIndiv9(int RECDmeasType, int dateOfBirth, int aidType, int tubing, int coupler,
+    public double[] getRECDhIndiv9(int RECDmeasType, int dateOfBirth, int aidType, int tubing, int vent, int coupler,
             int fittingDepth) {
         try {
             double[] recdh = new double[9];
-            // 需要添加 coupler2 参数 (第8个参数)
+            // 根据SDK文档: GetRECDh_indiv9_NL2(RECDh[9], RECDmeasType, dateOfBirth, aidType,
+            // tubing, vent, coupler, fittingDepth)
             OutputResult result = NativeManager.getInstance(context).GetRECDh_indiv9_NL2(recdh, RECDmeasType,
-                    dateOfBirth, aidType, tubing, coupler, fittingDepth, coupler);
+                    dateOfBirth, aidType, tubing, vent, coupler, fittingDepth);
             return getOutputData(result, recdh);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取RECDh_indiv9失败: " + e.getMessage());
@@ -259,7 +260,7 @@ public class Nal2Manager {
     public double[] getRECDtIndiv(int RECDmeasType, int dateOfBirth, int aidType, int tubing, int vent, int earpiece,
             int coupler, int fittingDepth) {
         try {
-            double[] recdt = new double[9];
+            double[] recdt = new double[19];
             OutputResult result = NativeManager.getInstance(context).GetRECDt_indiv_NL2(recdt, RECDmeasType,
                     dateOfBirth, aidType, tubing, vent, earpiece, coupler, fittingDepth);
             return getOutputData(result, recdt);
@@ -518,11 +519,14 @@ public class Nal2Manager {
     public double[] getCompressionRatio(double[] cr, int channels, int[] centreFreq, double[] ac, double[] bc,
             int direction, int mic, int limiting, double[] acOther, int noOfAids) {
         try {
-            // 详细的参数校验
-            if (centreFreq == null || centreFreq.length != channels) {
-                sendLog(TAG, "ERROR", "Invalid centreFreq array: expected " + channels + " elements, got " +
-                        (centreFreq == null ? "null" : centreFreq.length));
-                throw new IllegalArgumentException("centreFreq array size must equal channels (" + channels + ")");
+            // 详细的参数校验 - centreFreq 长度应该是 channels + 1
+            int expectedLength = channels + 1;
+            if (centreFreq == null || centreFreq.length != expectedLength) {
+                sendLog(TAG, "ERROR",
+                        "Invalid centreFreq array: expected " + expectedLength + " elements (channels + 1), got " +
+                                (centreFreq == null ? "null" : centreFreq.length));
+                throw new IllegalArgumentException(
+                        "centreFreq array size must equal channels + 1 (" + expectedLength + ")");
             }
 
             if (ac == null || ac.length != 9) {

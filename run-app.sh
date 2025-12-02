@@ -30,15 +30,59 @@ echo -e "${BLUE}📱 检查Android设备连接...${NC}"
 DEVICES=$(adb devices | grep -v "List" | grep "device$" | wc -l)
 
 if [ "$DEVICES" -eq 0 ]; then
-    echo -e "${RED}❌ 未检测到Android设备或模拟器${NC}"
+    echo -e "${YELLOW}⚠️  未检测到Android设备或模拟器${NC}"
     echo ""
-    echo "请确保："
-    echo "  1. 已连接Android设备并启用USB调试"
-    echo "  2. 或已启动Android模拟器"
-    echo ""
-    echo "检查设备连接："
-    adb devices
-    exit 1
+    
+    # 尝试通过WiFi连接
+    read -p "是否尝试通过WiFi连接设备? [Y/n]: " try_wifi
+    if [ "$try_wifi" != "n" ] && [ "$try_wifi" != "N" ]; then
+        read -p "请输入设备IP地址: " device_ip
+        
+        if [ -n "$device_ip" ]; then
+            echo ""
+            echo -e "${BLUE}🔌 尝试连接到 $device_ip:5555...${NC}"
+            
+            # 尝试连接
+            adb connect "$device_ip:5555"
+            
+            # 等待连接建立
+            sleep 2
+            
+            # 再次检查设备
+            DEVICES=$(adb devices | grep -v "List" | grep "device$" | wc -l)
+            
+            if [ "$DEVICES" -eq 0 ]; then
+                echo -e "${RED}❌ WiFi连接失败${NC}"
+                echo ""
+                echo "请确保："
+                echo "  1. 设备和电脑在同一WiFi网络"
+                echo "  2. 设备已启用USB调试和WiFi调试"
+                echo "  3. IP地址正确"
+                echo ""
+                echo "或者："
+                echo "  1. 通过USB连接设备并启用USB调试"
+                echo "  2. 或启动Android模拟器"
+                echo ""
+                echo "当前设备列表："
+                adb devices
+                exit 1
+            else
+                echo -e "${GREEN}✅ WiFi连接成功！${NC}"
+            fi
+        else
+            echo -e "${RED}❌ 未输入IP地址${NC}"
+            exit 1
+        fi
+    else
+        echo ""
+        echo "请确保："
+        echo "  1. 已连接Android设备并启用USB调试"
+        echo "  2. 或已启动Android模拟器"
+        echo ""
+        echo "检查设备连接："
+        adb devices
+        exit 1
+    fi
 elif [ "$DEVICES" -eq 1 ]; then
     DEVICE_NAME=$(adb devices | grep "device$" | awk '{print $1}')
     echo -e "${GREEN}✅ 检测到设备: $DEVICE_NAME${NC}"

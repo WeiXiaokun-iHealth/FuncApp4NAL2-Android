@@ -2,6 +2,6 @@
   "sequence_num": 11,
   "function": "GetREDDindiv",
   "input_parameters": {
-    "defValues": 0
+    "REDD_defValues": 0
   }
 }

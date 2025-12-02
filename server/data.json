@@ -5,6 +5,13 @@
   },
   "history": [
     {
+      "id": 1764641540828,
+      "function": "GetREDDindiv9",
+      "input": "{\n  \"function\": \"GetREDDindiv9\",\n  \"input_parameters\": {\n    \"REDD_defValues\": 0\n  },\n  \"sequence_num\": 46\n}",
+      "output": "{\n  \"sequence_num\": 46,\n  \"function\": \"GetREDDindiv9\",\n  \"return\": -1,\n  \"output_parameters\": {\n    \"error\": \"Attempt to invoke virtual method 'int com.google.gson.JsonElement.getAsInt()' on a null object reference\"\n  }\n}",
+      "timestamp": "2025-12-02T02:12:20.828Z"
+    },
+    {
       "id": 1763458463782,
       "function": "EarSimulatorInputOutputCurve_NL2",
       "input": "{\n  \"sequence_num\": 8,\n  \"function\": \"EarSimulatorInputOutputCurve_NL2\",\n  \"input_parameters\": {\n    \"AC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"BC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      999,\n      999,\n      999\n    ],\n    \"graphFreq\": 10,\n    \"startLevel\": 40,\n    \"finishLevel\": 90,\n    \"limiting\": 0,\n    \"channels\": 18,\n    \"direction\": 0,\n    \"mic\": 0,\n    \"target\": 0,\n    \"aidType\": 0,\n    \"ACother\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"noOfAids\": 0,\n    \"tubing\": 0,\n    \"vent\": 0,\n    \"RECDmeasType\": 0\n  }\n}",
@@ -14,9 +21,9 @@
     {
       "id": 1763453709878,
       "function": "CompressionRatio_NL2",
-      "input": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"input_parameters\": {\n    \"channels\": 18,\n    \"centreFreq\": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],\n    \"AC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"BC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 999.0, 999.0, 999.0],\n    \"direction\": 0,\n    \"mic\": 0,\n    \"limiting\": 0,\n    \"ACother\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"noOfAids\": 0\n  }\n}\n",
-      "output": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"CR\": [\n      0,\n      1.3273724227594101,\n      1.3605940274999004,\n      1.3605940274999004,\n      1.6439917104565769,\n      2.088941846520355,\n      2.1870588954854733,\n      2.2197021976915696,\n      2.1218386233614903,\n      1.8418195576423109,\n      1.7227793192461351,\n      1.5669531922299291,\n      1.4158585906330043,\n      1.2865742091838968,\n      1.1622363676394676,\n      1.0355057981033435,\n      1.0010963031778277,\n      0.9999999999999851,\n      1.3320920030981402\n    ]\n  }\n}",
-      "timestamp": "2025-12-01T03:42:24.212Z"
+      "input": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"input_parameters\": {\n    \"channels\": 18,\n    \"centreFreq\": [\n      0,\n      1,\n      2,\n      3,\n      4,\n      5,\n      6,\n      7,\n      8,\n      9,\n      10,\n      11,\n      12,\n      13,\n      14,\n      15,\n      16,\n17,\n18\n    ],\n    \"AC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"BC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      999,\n      999,\n      999\n    ],\n    \"direction\": 0,\n    \"mic\": 0,\n    \"limiting\": 0,\n    \"ACother\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"noOfAids\": 0\n  }\n}",
+      "output": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"CR\": [\n      0,\n      2.5212566428604086,\n      2.5356490911599012,\n      2.5307486644592507,\n      2.6300828370502134,\n      2.752532549775378,\n      2.913689459913217,\n      2.6867161351010758,\n      2.4414156250527173,\n      2.218171679180946,\n      2.13829474236489,\n      2.049109431403679,\n      1.965768498130385,\n      2.056574583248216,\n      2.1183599493320573,\n      2.112888888639464,\n      1.9690587603359475,\n      1.818573560639152,\n      1.6457864885036464\n    ]\n  }\n}",
+      "timestamp": "2025-12-02T03:37:18.363Z"
     },
     {
       "id": 1763430693287,
@@ -133,9 +140,9 @@
     {
       "id": 1763350172148,
       "function": "GetRECDh_indiv9_NL2",
-      "input": "{\n  \"sequence_num\": 123,\n  \"function\": \"GetRECDh_indiv9_NL2\",\n  \"input_parameters\": {\n    \"RECDmeasType\": 0,\n    \"dateOfBirth\": 19680420,\n    \"aidType\": 0,\n    \"tubing\": 0,\n    \"coupler\": 0,\n    \"fittingDepth\": 0\n  }\n}\n",
-      "output": "{\n  \"sequence_num\": 123,\n  \"result\": 0,\n  \"function\": \"GetRECDh_indiv9_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"RECDh\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
-      "timestamp": "2025-11-17T03:29:32.148Z"
+      "input": "{\n  \"function\": \"GetRECDh_indiv9_NL2\",\n  \"input_parameters\": {\n    \"RECDmeasType\": 0,\n    \"dateOfBirth\": 19810101,\n    \"aidType\": 3,\n    \"tubing\": 3,\n    \"vent\": 0,\n    \"coupler\": 0,\n    \"fittingDepth\": 0\n  },\n  \"sequence_num\": 125\n}",
+      "output": "{\n  \"sequence_num\": 125,\n  \"function\": \"GetRECDh_indiv9_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"RECDh9\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
+      "timestamp": "2025-12-02T05:48:50.174Z"
     },
     {
       "id": 1763350166170,

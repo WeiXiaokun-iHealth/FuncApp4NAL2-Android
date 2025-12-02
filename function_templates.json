@@ -1,0 +1,513 @@
+{
+  "templates": [
+    {
+      "label": "1 - dllVersion",
+      "function": "dllVersion",
+      "params": []
+    },
+    {
+      "label": "2 - RealEarInsertionGain_NL2",
+      "function": "RealEarInsertionGain_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "L",
+        "limiting",
+        "channels",
+        "direction",
+        "mic",
+        "ACother",
+        "noOfAids"
+      ]
+    },
+    {
+      "label": "3 - RealEarAidedGain_NL2",
+      "function": "RealEarAidedGain_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "L",
+        "limiting",
+        "channels",
+        "direction",
+        "mic",
+        "ACother",
+        "noOfAids"
+      ]
+    },
+    {
+      "label": "4 - TccCouplerGain_NL2",
+      "function": "TccCouplerGain_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "L",
+        "limiting",
+        "channels",
+        "direction",
+        "mic",
+        "target",
+        "aidType",
+        "ACother",
+        "noOfAids",
+        "tubing",
+        "vent",
+        "RECDmeasType"
+      ]
+    },
+    {
+      "label": "5 - EarSimulatorGain_NL2",
+      "function": "EarSimulatorGain_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "L",
+        "direction",
+        "mic",
+        "limiting",
+        "channels",
+        "target",
+        "aidType",
+        "ACother",
+        "noOfAids",
+        "tubing",
+        "vent",
+        "RECDmeasType"
+      ]
+    },
+    {
+      "label": "6 - RealEarInputOutputCurve_NL2",
+      "function": "RealEarInputOutputCurve_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "graphFreq",
+        "startLevel",
+        "finishLevel",
+        "limiting",
+        "channels",
+        "direction",
+        "mic",
+        "target",
+        "ACother",
+        "noOfAids"
+      ]
+    },
+    {
+      "label": "7 - TccInputOutputCurve_NL2",
+      "function": "TccInputOutputCurve_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "graphFreq",
+        "startLevel",
+        "finishLevel",
+        "limiting",
+        "channels",
+        "direction",
+        "mic",
+        "target",
+        "aidType",
+        "ACother",
+        "noOfAids",
+        "tubing",
+        "vent",
+        "RECDmeasType"
+      ]
+    },
+    {
+      "label": "8 - EarSimulatorInputOutputCurve_NL2",
+      "function": "EarSimulatorInputOutputCurve_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "graphFreq",
+        "startLevel",
+        "finishLevel",
+        "limiting",
+        "channels",
+        "direction",
+        "mic",
+        "target",
+        "aidType",
+        "ACother",
+        "noOfAids",
+        "tubing",
+        "vent",
+        "RECDmeasType"
+      ]
+    },
+    {
+      "label": "9 - Speech_o_Gram_NL2",
+      "function": "Speech_o_Gram_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "L",
+        "limiting",
+        "channels",
+        "direction",
+        "mic",
+        "ACother",
+        "noOfAids"
+      ]
+    },
+    {
+      "label": "10 - AidedThreshold_NL2",
+      "function": "AidedThreshold_NL2",
+      "params": [
+        "AC",
+        "BC",
+        "CT",
+        "dbOption",
+        "ACother",
+        "noOfAids",
+        "limiting",
+        "channels",
+        "direction",
+        "mic"
+      ]
+    },
+    {
+      "label": "11 - GetREDDindiv",
+      "function": "GetREDDindiv",
+      "params": [
+        "REDD_defValues"
+      ]
+    },
+    {
+      "label": "12 - GetREDDindiv9",
+      "function": "GetREDDindiv9",
+      "params": [
+        "REDD_defValues"
+      ]
+    },
+    {
+      "label": "13 - GetREURindiv",
+      "function": "GetREURindiv",
+      "params": [
+        "REUR_defValues",
+        "dateOfBirth",
+        "direction",
+        "mic"
+      ]
+    },
+    {
+      "label": "14 - GetREURindiv9",
+      "function": "GetREURindiv9",
+      "params": [
+        "REUR_defValues",
+        "dateOfBirth",
+        "direction",
+        "mic"
+      ]
+    },
+    {
+      "label": "15 - SetREDDindiv",
+      "function": "SetREDDindiv",
+      "params": [
+        "REDD",
+        "REDD_defValues"
+      ]
+    },
+    {
+      "label": "16 - SetREDDindiv9",
+      "function": "SetREDDindiv9",
+      "params": [
+        "REDD9",
+        "REDD_defValues"
+      ]
+    },
+    {
+      "label": "17 - SetREURindiv",
+      "function": "SetREURindiv",
+      "params": [
+        "REUR",
+        "REUR_defValues",
+        "dateOfBirth",
+        "direction",
+        "mic"
+      ]
+    },
+    {
+      "label": "18 - SetREURindiv9",
+      "function": "SetREURindiv9",
+      "params": [
+        "REUR9",
+        "REUR_defValues",
+        "dateOfBirth",
+        "direction",
+        "mic"
+      ]
+    },
+    {
+      "label": "19 - CrossOverFrequencies_NL2",
+      "function": "CrossOverFrequencies_NL2",
+      "params": [
+        "channels",
+        "AC",
+        "BC"
+      ]
+    },
+    {
+      "label": "20 - CenterFrequencies",
+      "function": "CenterFrequencies",
+      "params": [
+        "CFArray",
+        "channels"
+      ]
+    },
+    {
+      "label": "21 - CompressionThreshold_NL2",
+      "function": "CompressionThreshold_NL2",
+      "params": [
+        "bandWidth",
+        "selection",
+        "WBCT",
+        "aidType",
+        "direction",
+        "mic",
+        "calcCh"
+      ]
+    },
+    {
+      "label": "22 - CompressionRatio_NL2",
+      "function": "CompressionRatio_NL2",
+      "params": [
+        "channels",
+        "centreFreq",
+        "AC",
+        "BC",
+        "direction",
+        "mic",
+        "limiting",
+        "ACother",
+        "noOfAids"
+      ]
+    },
+    {
+      "label": "23 - setBWC",
+      "function": "setBWC",
+      "params": [
+        "channels",
+        "crossOver"
+      ]
+    },
+    {
+      "label": "24 - getMPO_NL2 (RESR/SSPL)",
+      "function": "getMPO_NL2",
+      "params": [
+        "type",
+        "AC",
+        "BC",
+        "channels",
+        "limiting"
+      ]
+    },
+    {
+      "label": "25 - GainAt_NL2",
+      "function": "GainAt_NL2",
+      "params": [
+        "freqRequired",
+        "targetType",
+        "AC",
+        "BC",
+        "L",
+        "limiting",
+        "channels",
+        "direction",
+        "mic",
+        "ACother",
+        "noOfAids",
+        "bandWidth",
+        "target",
+        "aidType",
+        "tubing",
+        "vent",
+        "RECDmeasType"
+      ]
+    },
+    {
+      "label": "26 - GetMLE",
+      "function": "GetMLE",
+      "params": [
+        "aidType",
+        "direction",
+        "mic"
+      ]
+    },
+    {
+      "label": "27 - ReturnValues_NL2",
+      "function": "ReturnValues_NL2",
+      "params": []
+    },
+    {
+      "label": "28 - GetTubing_NL2",
+      "function": "GetTubing_NL2",
+      "params": [
+        "tubing"
+      ]
+    },
+    {
+      "label": "29 - GetTubing9_NL2",
+      "function": "GetTubing9_NL2",
+      "params": [
+        "tubing"
+      ]
+    },
+    {
+      "label": "30 - GetVentOut_NL2",
+      "function": "GetVentOut_NL2",
+      "params": [
+        "vent"
+      ]
+    },
+    {
+      "label": "31 - GetVentOut9_NL2",
+      "function": "GetVentOut9_NL2",
+      "params": [
+        "vent"
+      ]
+    },
+    {
+      "label": "32 - Get_SI_NL2",
+      "function": "Get_SI_NL2",
+      "params": [
+        "s",
+        "REAG",
+        "Limit"
+      ]
+    },
+    {
+      "label": "33 - Get_SII",
+      "function": "Get_SII",
+      "params": [
+        "nCompSpeed",
+        "Speech_thresh",
+        "s",
+        "REAG",
+        "REAGp",
+        "REAGm",
+        "REUR"
+      ]
+    },
+    {
+      "label": "34 - SetAdultChild",
+      "function": "SetAdultChild",
+      "params": [
+        "adultChild",
+        "dateOfBirth"
+      ]
+    },
+    {
+      "label": "35 - SetExperience",
+      "function": "SetExperience",
+      "params": [
+        "experience"
+      ]
+    },
+    {
+      "label": "36 - SetCompSpeed",
+      "function": "SetCompSpeed",
+      "params": [
+        "compSpeed"
+      ]
+    },
+    {
+      "label": "37 - SetTonalLanguage",
+      "function": "SetTonalLanguage",
+      "params": [
+        "tonal"
+      ]
+    },
+    {
+      "label": "38 - SetGender",
+      "function": "SetGender",
+      "params": [
+        "gender"
+      ]
+    },
+    {
+      "label": "39 - GetRECDh_indiv_NL2",
+      "function": "GetRECDh_indiv_NL2",
+      "params": [
+        "RECDmeasType",
+        "dateOfBirth",
+        "aidType",
+        "tubing",
+        "vent",
+        "coupler",
+        "fittingDepth"
+      ]
+    },
+    {
+      "label": "40 - GetRECDh_indiv9_NL2",
+      "function": "GetRECDh_indiv9_NL2",
+      "params": [
+        "RECDmeasType",
+        "dateOfBirth",
+        "aidType",
+        "tubing",
+        "vent",
+        "coupler",
+        "fittingDepth"
+      ]
+    },
+    {
+      "label": "41 - GetRECDt_indiv_NL2",
+      "function": "GetRECDt_indiv_NL2",
+      "params": [
+        "RECDmeasType",
+        "dateOfBirth",
+        "aidType",
+        "tubing",
+        "vent",
+        "earpiece",
+        "coupler",
+        "fittingDepth"
+      ]
+    },
+    {
+      "label": "42 - GetRECDt_indiv9_NL2",
+      "function": "GetRECDt_indiv9_NL2",
+      "params": [
+        "RECDmeasType",
+        "dateOfBirth",
+        "aidType",
+        "tubing",
+        "vent",
+        "earpiece",
+        "coupler",
+        "fittingDepth"
+      ]
+    },
+    {
+      "label": "43 - SetRECDh_indiv_NL2",
+      "function": "SetRECDh_indiv_NL2",
+      "params": [
+        "RECDh"
+      ]
+    },
+    {
+      "label": "44 - SetRECDh_indiv9_NL2",
+      "function": "SetRECDh_indiv9_NL2",
+      "params": [
+        "RECDh9"
+      ]
+    },
+    {
+      "label": "45 - SetRECDt_indiv_NL2",
+      "function": "SetRECDt_indiv_NL2",
+      "params": [
+        "RECDt"
+      ]
+    },
+    {
+      "label": "46 - SetRECDt_indiv9_NL2",
+      "function": "SetRECDt_indiv9_NL2",
+      "params": [
+        "RECDt9"
+      ]
+    }
+  ]
+}

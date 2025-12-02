@@ -477,10 +477,11 @@ class Nal2Manager private constructor(context: Context) {
         dateOfBirth: Int,
         aidType: Int,
         tubing: Int,
+        vent: Int,
         coupler: Int,
         fittingDepth: Int
     ): DoubleArray {
-        return nal2SDK.getRECDhIndiv9(RECDmeasType, dateOfBirth, aidType, tubing, coupler, fittingDepth)
+        return nal2SDK.getRECDhIndiv9(RECDmeasType, dateOfBirth, aidType, tubing, vent, coupler, fittingDepth)
     }
 
     fun getRECDtIndiv(

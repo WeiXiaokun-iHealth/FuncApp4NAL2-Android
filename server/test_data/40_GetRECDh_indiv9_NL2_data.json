@@ -1,12 +1,13 @@
 {
-  "sequence_num": 40,
   "function": "GetRECDh_indiv9_NL2",
   "input_parameters": {
     "RECDmeasType": 0,
-    "dateOfBirth": 19680420,
-    "aidType": 0,
-    "tubing": 0,
+    "dateOfBirth": 19810101,
+    "aidType": 3,
+    "tubing": 3,
+    "vent": 0,
     "coupler": 0,
     "fittingDepth": 0
-  }
+  },
+  "sequence_num": 125
 }
