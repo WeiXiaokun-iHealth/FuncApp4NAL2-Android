@@ -280,7 +280,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "CompressionThreshold_NL2" -> {
                     val ct = DoubleArray(19)
-                    val bandwidth = params.get("bandWidth")?.asInt ?: params.get("bandwidth")?.asInt ?: 0
+                    val bandwidth = params.get("bandWidth").asInt
                     val selection = params.get("selection")?.asInt ?: 0
                     val WBCT = params.get("WBCT")?.asInt ?: 0
                     val aidType = params.get("aidType")?.asInt ?: 0
@@ -424,6 +424,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val data = DoubleArray(19)
                     val ac = jsonArrayToDoubleArray(params.getAsJsonArray("AC"))
                     val bc = jsonArrayToDoubleArray(params.getAsJsonArray("BC"))
+                    val acOther = jsonArrayToDoubleArray(params.getAsJsonArray("ACother"))
                     
                     val reagResult = nal2Manager.getRealEarAidedGain(
                         data,
@@ -434,6 +435,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("channels").asInt,
                         params.get("direction").asInt,
                         params.get("mic").asInt,
+                        acOther,
                         params.get("noOfAids").asInt
                     )
                     result.add("REAG", doubleArrayToJsonArray(reagResult))
@@ -507,6 +509,7 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         params.get("dateOfBirth").asInt,
                         params.get("aidType").asInt,
                         params.get("tubing").asInt,
+                        params.get("vent").asInt,
                         params.get("coupler").asInt,
                         params.get("fittingDepth").asInt
                     )
@@ -841,13 +844,13 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 
                 "GetVentOut_NL2" -> {
                     val ventOut = nal2Manager.getVentOut(params.get("vent").asInt)
-                    result.add("VentOut", doubleArrayToJsonArray(ventOut))
+                    result.add("Ventout", doubleArrayToJsonArray(ventOut))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GetVentOut完成")
                 }
                 
                 "GetVentOut9_NL2" -> {
                     val ventOut = nal2Manager.getVentOut9(params.get("vent").asInt)
-                    result.add("VentOut9", doubleArrayToJsonArray(ventOut))
+                    result.add("Ventout9", doubleArrayToJsonArray(ventOut))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: GetVentOut9完成")
                 }
                 

@@ -204,10 +204,12 @@ public class Nal2Manager {
     }
 
     public double[] getRealEarAidedGain(double[] data, double[] acDouble, double[] bcDouble, double level, int limiting,
-            int channels, int direction, int mic, int noOfAids) {
+            int channels, int direction, int mic, double[] acOther, int noOfAids) {
         try {
+            // API文档: RealEarAidedGain_NL2(REAG[19], AC[9], BC[9], L, limiting, channels,
+            // direction, mic, ACother[9], noOfAids)
             OutputResult result = NativeManager.getInstance(context).RealEarAidedGain_NL2(data, acDouble, bcDouble,
-                    level, limiting, channels, direction, mic, acDouble, noOfAids);
+                    level, limiting, channels, direction, mic, acOther, noOfAids);
             return getOutputData(result, data);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取实耳增益失败: " + e.getMessage());
@@ -228,17 +230,18 @@ public class Nal2Manager {
         }
     }
 
-    public double[] getRECDhIndiv(int RECDmeasType, int dateOfBirth, int aidType, int tubing, int coupler,
+    public double[] getRECDhIndiv(int RECDmeasType, int dateOfBirth, int aidType, int tubing, int vent, int coupler,
             int fittingDepth) {
         try {
             double[] recdh = new double[19];
-            // 需要添加 coupler2 参数 (第8个参数)
+            // API文档: GetRECDh_indiv_NL2(RECDh[19], RECDmeasType, dateOfBirth, aidType,
+            // tubing, vent, coupler, fittingDepth)
             OutputResult result = NativeManager.getInstance(context).GetRECDh_indiv_NL2(recdh, RECDmeasType,
-                    dateOfBirth, aidType, tubing, coupler, fittingDepth, coupler);
+                    dateOfBirth, aidType, tubing, vent, coupler, fittingDepth);
             return getOutputData(result, recdh);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取RECDh_indiv失败: " + e.getMessage());
-            return new double[9];
+            return new double[19];
         }
     }
 
@@ -612,16 +615,14 @@ public class Nal2Manager {
             int direction, int mic, int limiting, int channels, int target, int aidType, double[] acOther,
             int noOfAids, int tubing, int vent, int RECDmeasType, int[] lineType) {
         try {
-            // aidType 需要转换为 int[] 数组
-            int[] aidTypeArray = new int[] { aidType };
+            // API文档: EarSimulatorGain_NL2(ESG[19], AC[9], BC[9], L, direction, mic,
+            // limiting,
+            // channels, target, aidType, ACother[9], noOfAids, tubing, vent, RECDmeasType,
+            // lineType[19])
             OutputResult result = NativeManager.getInstance(context).EarSimulatorGain_NL2(gain, ac, bc, L,
                     direction, mic, limiting, channels, target, aidType, acOther, noOfAids, tubing, vent,
-                    RECDmeasType, aidTypeArray);
+                    RECDmeasType, lineType);
             double[] esg = getOutputData(result, gain);
-            // lineType通过aidTypeArray返回，这里简单填充
-            for (int i = 0; i < lineType.length && i < aidTypeArray.length; i++) {
-                lineType[i] = aidTypeArray[i];
-            }
             return new EarSimulatorGainResult(esg, lineType);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取EarSimulator增益失败: " + e.getMessage());

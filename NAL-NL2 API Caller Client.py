@@ -11,7 +11,7 @@ from requests.exceptions import RequestException
 from PySide6 import QtCore, QtGui, QtWidgets
 
 APP_NAME = "NAL-NL2 API Caller Client"
-APP_VERSION = "Ver2025.12.01-Qt"
+APP_VERSION = "Ver2025.12.02-2"
 
 DEFAULT_CONFIG_FILE = "nal_nl2_config.json"
 DEFAULT_TEMPLATES_FILE = "function_templates.json"
@@ -70,9 +70,9 @@ DEFAULT_TEMPLATES = {
         {"label": "29 - GetTubing9_NL2", "function": "GetTubing9_NL2", "params": ["tubing"]},
         {"label": "30 - GetVentOut_NL2", "function": "GetVentOut_NL2", "params": ["vent"]},
         {"label": "31 - GetVentOut9_NL2", "function": "GetVentOut9_NL2", "params": ["vent"]},
-        {"label": "32 - Get_SI_NL2", "function": "Get_SI_NL2", "params": ["s", "REAG", "Limit"]},
+        {"label": "32 - Get_SI_NL2", "function": "Get_SI_NL2", "params": ["s", "REAG", "MPO"]}, # MPO的位置在原文档里是 Limit,猜测就是MPO
         {"label": "33 - Get_SII", "function": "Get_SII",
-         "params": ["nCompSpeed", "Speech_thresh", "s", "REAG", "REAGp", "REAGm", "REUR"]},
+         "params": ["compSpeed", "Speech_thresh", "s", "REAG", "REAGp", "REAGm", "REUR"]}, # compSpeed 的位置在文档里是 nCompSpeed ,猜测是同一个数据
         {"label": "34 - SetAdultChild", "function": "SetAdultChild", "params": ["adultChild", "dateOfBirth"]},
         {"label": "35 - SetExperience", "function": "SetExperience", "params": ["experience"]},
         {"label": "36 - SetCompSpeed", "function": "SetCompSpeed", "params": ["compSpeed"]},
@@ -224,6 +224,9 @@ class AppConfig:
     Speech_min: List[float] = field(default_factory=lambda: [0.0] * 19)    # Speech_o_Gram_NL2 (9o)
     Speech_thresh: List[float] = field(default_factory=lambda: [0.0] * 19) # Speech_o_Gram_NL2 / Get_SII (9o 33i)
     Limit: List[float] = field(default_factory=lambda: [0.0] * 19)         # Get_SI_NL2 (32i)
+
+    REAGp: List[float] = field(default_factory=lambda: [0.0] * 19)         # Get_SII (33i)
+    REAGm: List[float] = field(default_factory=lambda: [0.0] * 19)         # Get_SII (33i)
     SI_value: float = 0.0                                                  # Get_SI_NL2 返回值 (32o)
     SII_value: float = 0.0                                                 # Get_SII 返回值 (33o)
 
@@ -251,6 +254,22 @@ class AppConfig:
 # ==============================
     dll_major: int = 0                                               # dllVersion (1o)
     dll_minor: int = 0                                               # dllVersion (1o)
+
+
+# —— 新增：增益/响应曲线页缓存（19点） ——
+    gain50_19: List[float] = field(default_factory=lambda: [0.0] * 19)
+    gain65_19: List[float] = field(default_factory=lambda: [0.0] * 19)
+    gain80_19: List[float] = field(default_factory=lambda: [0.0] * 19)
+    gainL_19:  List[float] = field(default_factory=lambda: [0.0] * 19)
+
+    resp50_19: List[float] = field(default_factory=lambda: [0.0] * 19)
+    resp65_19: List[float] = field(default_factory=lambda: [0.0] * 19)
+    resp80_19: List[float] = field(default_factory=lambda: [0.0] * 19)
+    respL_19:  List[float] = field(default_factory=lambda: [0.0] * 19)
+ 
+# —— 新增：GainAt_NL2 的增益与响应（19点） ——
+    GainAt_NL2_gain: List[float] = field(default_factory=lambda: [0.0] * 19)
+    GainAt_NL2_resp: List[float] = field(default_factory=lambda: [0.0] * 19)
 
 # ==============================
 # 频点说明（注释）
@@ -337,6 +356,777 @@ class _WheelFocusFilter(QtCore.QObject):
             p = p.parent()
         return None
 
+class CurveChart(QtWidgets.QWidget):
+    def __init__(self, kind: str, parent=None):
+        super().__init__(parent)
+        # kind: "gain" 或 "resp"
+        self.kind = kind
+        if kind == "gain":
+            self.y_min, self.y_max, self.y_step = -10, 60, 10
+            self.y_unit = "dB"
+        else:
+            self.y_min, self.y_max, self.y_step = 0, 130, 10
+            self.y_unit = "dB SPL"
+        self.freqs = FREQS_19[:]
+        self.series: Dict[str, List[Optional[float]]] = {
+            "50": [None]*19,
+            "65": [None]*19,
+            "80": [None]*19,
+            "L":  [None]*19,
+            "GA": [None]*19,
+        }
+        self.colors = {
+            "50": QtGui.QColor(115, 76, 158),   # 紫色(148, 0, 211)
+            "65": QtGui.QColor(212, 90, 41),   # 橙色(255, 140, 0)
+            "80": QtGui.QColor(93, 170, 184),   # 蓝绿色(0, 128, 128)
+            "L":  QtGui.QColor(160, 160, 160),     # 灰色(160, 160, 160)
+            "GA": QtGui.QColor(0, 0, 0), 
+        }
+        self.setMinimumHeight(260)
+        self.setAutoFillBackground(True)
+
+    def setFrequencies(self, freqs: List[int]):
+        if len(freqs) == 19:
+            self.freqs = freqs[:]
+            self.update()
+
+    def setSeries(self, name: str, values: List[Optional[float]]):
+        if name in self.series and len(values) == 19:
+            self.series[name] = values[:]
+            self.update()
+
+    def clearAll(self):
+        for k in self.series.keys():
+            self.series[k] = [None]*19
+        self.update()
+
+    def paintEvent(self, e: QtGui.QPaintEvent):
+        p = QtGui.QPainter(self)
+        p.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.TextAntialiasing)
+
+        rect = self.rect()
+        p.fillRect(rect, QtGui.QColor(255, 255, 255))
+
+        left, right, top, bottom = 60, 20, 20, 46
+        plot = QtCore.QRectF(rect.left()+left, rect.top()+top, rect.width()-left-right, rect.height()-top-bottom)
+
+        # 背景网格：纵向 19 条
+        vpen = QtGui.QPen(QtGui.QColor(220,220,220))
+        p.setPen(vpen)
+        xs = self._x_positions(plot)
+        for x in xs:
+            p.drawLine(QtCore.QPointF(x, plot.top()), QtCore.QPointF(x, plot.bottom()))
+        # 横向网格
+        hpen = QtGui.QPen(QtGui.QColor(220,220,220))
+        p.setPen(hpen)
+        for yv in range(self.y_min, self.y_max + 1, self.y_step):
+            y = self._y_to_pixel(yv, plot)
+            p.drawLine(QtCore.QPointF(plot.left(), y), QtCore.QPointF(plot.right(), y))
+
+        # 坐标标签：Y轴
+        p.setPen(QtGui.QColor(60,60,60))
+        font = p.font(); font.setPointSize(9); p.setFont(font)
+        for yv in range(self.y_min, self.y_max + 1, self.y_step):
+            y = self._y_to_pixel(yv, plot)
+            p.drawText(QtCore.QRectF(0, y-8, plot.left()-6, 16),
+                       QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignVCenter, str(yv))
+
+        # X 轴标签（中心对齐）
+        for i, x in enumerate(xs):
+            label = str(self.freqs[i]) + (" Hz" if i == len(xs)-1 else "")
+            p.drawText(QtCore.QRectF(x-40, plot.bottom()+2, 80, 18),
+                       QtCore.Qt.AlignmentFlag.AlignHCenter|QtCore.Qt.AlignmentFlag.AlignTop, label)
+
+        # 边框
+        p.setPen(QtGui.QPen(QtGui.QColor(160,160,160)))
+        p.drawRect(plot)
+
+        # 曲线
+        for key in ["50","65","80","L","GA"]:
+            vals = self.series.get(key, [])
+            color = self.colors[key]
+            self._draw_series(p, plot, xs, vals, color)
+
+        # 图例
+        legend_items = [("50dB", self.colors["50"]), ("65dB", self.colors["65"]),
+                        ("80dB", self.colors["80"]), ("LdB", self.colors["L"]),
+                        ("GainAt", self.colors["GA"])]
+        lx, ly = plot.left()+6, plot.top()+6
+        for name, col in legend_items:
+            p.setPen(QtGui.QPen(col, 2)); p.drawLine(lx, ly+6, lx+16, ly+6)
+            p.setPen(QtGui.QPen(QtGui.QColor(50,50,50))); p.drawText(lx+20, ly+10, name)
+            ly += 16
+
+    def _x_positions(self, plot: QtCore.QRectF) -> List[float]:
+        w = plot.width(); n = 19; step = w / (n - 1)
+        return [plot.left() + i*step for i in range(n)]
+
+    def _y_to_pixel(self, yval: float, plot: QtCore.QRectF) -> float:
+        yval = max(self.y_min, min(self.y_max, yval))
+        ratio = (yval - self.y_min) / (self.y_max - self.y_min)
+        return plot.bottom() - ratio * plot.height()
+
+    def _draw_series(self, p: QtGui.QPainter, plot: QtCore.QRectF, xs: List[float], vals: List[Optional[float]], color: QtGui.QColor):
+        pts = [(xs[i], self._y_to_pixel(vals[i], plot)) for i in range(19) if vals[i] is not None]
+        if len(pts) == 0:
+            return
+        # 画点
+        p.setBrush(color); p.setPen(QtGui.QPen(color, 2))
+        for x, y in pts:
+            p.drawEllipse(QtCore.QPointF(x, y), 2.5, 2.5)
+        if len(pts) == 1:
+            return
+        X = [pt[0] for pt in pts]; Y = [pt[1] for pt in pts]
+        path = QtGui.QPainterPath(QtCore.QPointF(X[0], Y[0]))
+        beziers = self._monotone_bezier(X, Y)
+        p.setBrush(QtCore.Qt.BrushStyle.NoBrush)
+        for i in range(len(pts)-1):
+            c1, c2 = beziers[i]
+            path.cubicTo(QtCore.QPointF(c1[0], c1[1]), QtCore.QPointF(c2[0], c2[1]),
+                         QtCore.QPointF(X[i+1], Y[i+1]))
+        p.drawPath(path)
+
+    def _monotone_bezier(self, X: List[float], Y: List[float]):
+        n = len(X)
+        dx = [X[i+1]-X[i] for i in range(n-1)]
+        dy = [Y[i+1]-Y[i] for i in range(n-1)]
+        s = [dy[i]/dx[i] if dx[i] != 0 else 0.0 for i in range(n-1)]
+        m = [0.0]*n; m[0] = s[0]; m[-1] = s[-1]
+        for i in range(1, n-1):
+            m[i] = 0.0 if s[i-1]*s[i] <= 0 else (s[i-1] + s[i]) / 2.0
+        # Fritsch-Carlson 限制避免过冲
+        for i in range(n-1):
+            if s[i] == 0:
+                m[i] = m[i+1] = 0.0
+            else:
+                a = m[i] / s[i]; b = m[i+1] / s[i]; h = a*a + b*b
+                if h > 9.0:
+                    t = 3.0 / (h**0.5); m[i] = t*a*s[i]; m[i+1] = t*b*s[i]
+        # 转为 Bezier 控制点
+        beziers = []
+        for i in range(n-1):
+            x0, y0, x1, y1 = X[i], Y[i], X[i+1], Y[i+1]
+            h = x1 - x0
+            c1 = (x0 + h/3.0, y0 + m[i] * h/3.0)
+            c2 = (x1 - h/3.0, y1 - m[i+1] * h/3.0)
+            beziers.append((c1, c2))
+        return beziers
+
+class GainRespTab(QtWidgets.QWidget):
+    def __init__(self, mainwin: "MainWindow"):
+        super().__init__()
+        self.win = mainwin
+        self._build_ui()
+        self._load_from_cfg()
+        # 确保“点击才聚焦 + 未聚焦滚轮滚父区”的策略对本页生效
+        if hasattr(self.win, "_apply_strict_focus_behavior"):
+            self.win._apply_strict_focus_behavior()
+
+    def _build_ui(self):
+        main = QtWidgets.QHBoxLayout(self)
+
+        # 左侧固定宽度（可按需调整 400~460）
+        left_box = QtWidgets.QWidget(); left_box.setFixedWidth(420)
+        left = QtWidgets.QVBoxLayout(left_box); left.setContentsMargins(8,8,8,8); left.setSpacing(8)
+
+        # 参数区
+        gb_param = QtWidgets.QGroupBox("参数"); vparam = QtWidgets.QGridLayout(gb_param)
+        vparam.addWidget(QtWidgets.QLabel("宽带声压级 (L)"), 0, 0)
+        self.L_edit = QtWidgets.QLineEdit(str(self.win.cfg.L)); self.L_edit.setFixedWidth(120)
+        vparam.addWidget(self.L_edit, 0, 1)
+        vparam.addWidget(QtWidgets.QLabel("dB SPL"), 0, 2)
+
+        vparam.addWidget(QtWidgets.QLabel("要使用的增益目标(target)"), 1, 0)
+        self.target_combo = QtWidgets.QComboBox()
+        self.target_combo.addItem("0 - REIG", 0); self.target_combo.addItem("1 - REAG", 1)
+        self.target_combo.setCurrentIndex(self.target_combo.findData(self.win.cfg.target))
+        self.target_combo.setFixedWidth(120); vparam.addWidget(self.target_combo, 1, 1)
+
+        vparam.addWidget(QtWidgets.QLabel("MPO限制类型(limiting)"), 2, 0)
+        self.limit_combo = QtWidgets.QComboBox()
+        for k, v in [(0,"关(off)"),(1,"宽带(wideband)"),(2,"多通道(multichannel)")]: self.limit_combo.addItem(f"{k} - {v}", k)
+        self.limit_combo.setCurrentIndex(self.limit_combo.findData(self.win.cfg.limiting))
+        self.limit_combo.setFixedWidth(120); vparam.addWidget(self.limit_combo, 2, 1)
+
+        vparam.addWidget(QtWidgets.QLabel("MPO类型(type)"), 3, 0)
+        self.type_combo = QtWidgets.QComboBox()
+        self.type_combo.addItem("0 - RESR", 0); self.type_combo.addItem("1 - SSPL", 1)
+        self.type_combo.setCurrentIndex(self.type_combo.findData(self.win.cfg.type))
+        self.type_combo.setFixedWidth(120); vparam.addWidget(self.type_combo, 3, 1)
+        left.addWidget(gb_param)
+
+        # 按钮区
+        btns = QtWidgets.QGridLayout()
+        r = 0
+        self.btn_get_mpo = QtWidgets.QPushButton("获取MPO"); self.btn_get_cr  = QtWidgets.QPushButton("获取压缩比")
+        btns.addWidget(self.btn_get_mpo, r, 0); btns.addWidget(self.btn_get_cr, r, 1); r += 1
+        self.btn_get_reig = QtWidgets.QPushButton("获取REIG"); self.btn_get_reag = QtWidgets.QPushButton("获取REAG")
+        btns.addWidget(self.btn_get_reig, r, 0); btns.addWidget(self.btn_get_reag, r, 1); r += 1
+        self.btn_get_2cc  = QtWidgets.QPushButton("获取2cc");  self.btn_get_ears = QtWidgets.QPushButton("获取EarSim")
+        btns.addWidget(self.btn_get_2cc, r, 0); btns.addWidget(self.btn_get_ears, r, 1)
+        left.addLayout(btns)
+        
+        # 分隔线 + targetType + 获取 GainAt_NL2（批量）
+        sep = QtWidgets.QFrame()
+        sep.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        sep.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        left.addWidget(sep)
+
+        row_gainat = QtWidgets.QHBoxLayout()
+        row_gainat.addWidget(QtWidgets.QLabel("targetType"))
+        self.targetType_combo = QtWidgets.QComboBox()
+        for k, v in [(0,"REIG"), (1,"REAG"), (2,"2cc"), (3,"EarSim")]:
+            self.targetType_combo.addItem(f"{k} - {v}", k)
+        self.targetType_combo.setCurrentIndex(self.targetType_combo.findData(self.win.cfg.targetType))
+        row_gainat.addWidget(self.targetType_combo)
+
+        self.btn_gainat = QtWidgets.QPushButton("获取GainAt_NL2")
+        row_gainat.addWidget(self.btn_gainat)
+        row_gainat.addStretch()
+        left.addLayout(row_gainat)
+
+        # 单点 GainAt：freqRequired 下拉 + 按钮 + 返回值
+        row_gainat_one = QtWidgets.QHBoxLayout()
+        row_gainat_one.addWidget(QtWidgets.QLabel("freqRequired"))
+        self.freqRequired_combo = QtWidgets.QComboBox()
+        for i, f in enumerate(FREQS_19):
+            self.freqRequired_combo.addItem(f"{i} - {f}Hz", i)
+        self.freqRequired_combo.setCurrentIndex(self.freqRequired_combo.findData(self.win.cfg.freqRequired))
+        row_gainat_one.addWidget(self.freqRequired_combo)
+
+        self.btn_gainat_single = QtWidgets.QPushButton("获取单点GainAt_NL2")
+        row_gainat_one.addWidget(self.btn_gainat_single)
+
+        row_gainat_one.addWidget(QtWidgets.QLabel("返回值"))
+        self.gainat_ret_edit = QtWidgets.QLineEdit()
+        self.gainat_ret_edit.setFixedWidth(80)
+        self.gainat_ret_edit.setReadOnly(True)
+        row_gainat_one.addWidget(self.gainat_ret_edit)
+        row_gainat_one.addStretch()
+        left.addLayout(row_gainat_one)
+
+        # 事件绑定
+        self.targetType_combo.currentIndexChanged.connect(self._on_targetType_changed)
+        self.freqRequired_combo.currentIndexChanged.connect(self._on_freqRequired_changed)
+        self.btn_gainat.clicked.connect(self._on_gain_at)
+        self.btn_gainat_single.clicked.connect(self._on_gain_at_single)
+
+        # 日志区
+        gb_log = QtWidgets.QGroupBox("日志"); vlog = QtWidgets.QVBoxLayout(gb_log)
+        self.log = QtWidgets.QPlainTextEdit(); self.log.setReadOnly(True); vlog.addWidget(self.log, 1)
+        self.btn_clear_log = QtWidgets.QPushButton("清空log"); vlog.addWidget(self.btn_clear_log)
+        left.addWidget(gb_log, 1)
+
+        main.addWidget(left_box)
+
+        # 右侧：图形 + 数据
+        right = QtWidgets.QVBoxLayout(); main.addLayout(right, 1)
+
+        # 图形页（增益/响应）
+        self.subtabs = QtWidgets.QTabWidget(); right.addWidget(self.subtabs, 2)
+
+        # 增益 tab
+        self.tab_gain = QtWidgets.QWidget(); vg = QtWidgets.QVBoxLayout(self.tab_gain)
+        self.chart_gain = CurveChart("gain"); vg.addWidget(self.chart_gain, 3)
+        self.gain_rows = self._build_data_rows(vg, ["通道中心频率","50dB Gain","65dB Gain","80dB Gain","LdB Gain","GainAt_NL2 Gain"])
+        self.subtabs.addTab(self.tab_gain, "增益曲线")
+
+        # 响应 tab
+        self.tab_resp = QtWidgets.QWidget(); vr = QtWidgets.QVBoxLayout(self.tab_resp)
+        self.chart_resp = CurveChart("resp"); vr.addWidget(self.chart_resp, 3)
+        self.resp_rows = self._build_data_rows(vr, ["通道中心频率","50dB Resp","65dB Resp","80dB Resp","LdB Resp","GainAt_NL2 Resp"])
+        self.subtabs.addTab(self.tab_resp, "响应曲线")
+
+        # 清除曲线按钮
+        self.btn_clear_curves = QtWidgets.QPushButton("清除曲线"); right.addWidget(self.btn_clear_curves)
+
+        # 数据显示区：中心频率、MPO、CT、CR
+        gb_show = QtWidgets.QGroupBox("数据显示区"); vs = QtWidgets.QVBoxLayout(gb_show)
+        self.show_rows = self._build_data_rows(vs, ["通道中心频率","MPO","CT","CR"])
+        right.addWidget(gb_show, 0)
+
+        # 标准曲线按钮
+        rowstd = QtWidgets.QHBoxLayout()
+        self.btn_std_reig = QtWidgets.QPushButton("获取REIG标准曲线")
+        self.btn_std_reag = QtWidgets.QPushButton("获取REAG标准曲线")
+        self.btn_std_2cc  = QtWidgets.QPushButton("获取2cc标准曲线")
+        self.btn_std_ears = QtWidgets.QPushButton("获取EarSim标准曲线")
+        for b in (self.btn_std_reig, self.btn_std_reag, self.btn_std_2cc, self.btn_std_ears): rowstd.addWidget(b)
+        rowstd.addStretch(); right.addLayout(rowstd)
+
+        # 事件
+        self.L_edit.editingFinished.connect(self._on_params_changed)
+        self.target_combo.currentIndexChanged.connect(self._on_params_changed)
+        self.limit_combo.currentIndexChanged.connect(self._on_params_changed)
+        self.type_combo.currentIndexChanged.connect(self._on_params_changed)
+        self.btn_clear_log.clicked.connect(self.log.clear)
+        self.btn_clear_curves.clicked.connect(self._on_clear_curves)
+
+        self.btn_get_mpo.clicked.connect(self._on_get_mpo)
+        self.btn_get_cr.clicked.connect(self._on_get_cr)
+        self.btn_get_reig.clicked.connect(lambda: self._on_get_gain("REIG"))
+        self.btn_get_reag.clicked.connect(lambda: self._on_get_gain("REAG"))
+        self.btn_get_2cc.clicked.connect(lambda: self._on_get_gain("2cc"))
+        self.btn_get_ears.clicked.connect(lambda: self._on_get_gain("EarSim"))
+
+        self.btn_std_reig.clicked.connect(lambda: self._on_std_curves("REIG"))
+        self.btn_std_reag.clicked.connect(lambda: self._on_std_curves("REAG"))
+        self.btn_std_2cc.clicked.connect(lambda: self._on_std_curves("2cc"))
+        self.btn_std_ears.clicked.connect(lambda: self._on_std_curves("EarSim"))
+    
+    def _build_data_rows(self, parent_layout: QtWidgets.QVBoxLayout, titles: List[str]):
+        rows = {}
+        # 第一行：通道中心频率（用 QLabel）
+        row = QtWidgets.QHBoxLayout()
+        lab = QtWidgets.QLabel(titles[0]); lab.setFixedWidth(110)
+        row.addWidget(lab)
+        edits = []
+        for _ in range(19):
+            labv = QtWidgets.QLabel("")
+            labv.setFixedWidth(40)
+            labv.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            edits.append(labv)
+            row.addWidget(labv)
+        row.addStretch()
+        parent_layout.addLayout(row)
+        rows[titles[0]] = edits
+    
+        # 其它行（用 QLineEdit）
+        for title in titles[1:]:
+            row = QtWidgets.QHBoxLayout()
+            lab = QtWidgets.QLabel(title); lab.setFixedWidth(110)
+            row.addWidget(lab)
+            edits = []
+            for _ in range(19):
+                e = QtWidgets.QLineEdit()
+                e.setFixedWidth(40)
+                e.setReadOnly(True)
+                edits.append(e)
+                row.addWidget(e)
+            row.addStretch()
+            parent_layout.addLayout(row)
+            rows[title] = edits
+    
+        return rows
+
+    def _log(self, msg: str):
+        self.log.appendPlainText(msg)
+
+    def _sep(self):
+        self._log("--------------------------------------------------------------------\n")
+
+    def _get_center_freqs(self) -> List[int]:
+        cf = self.win.cfg.centerF
+        if isinstance(cf, list) and len(cf) == 19 and any(x != 0 for x in cf):
+            return [int(x) if x else FREQS_19[i] for i, x in enumerate(cf)]
+        return FREQS_19[:]
+    
+    def _fill_row(self, edits, data, fmt="{:.1f}", int_only: bool=False):
+        for i in range(19):
+            v = data[i]
+            if v is None:
+                text = ""
+            else:
+                try:
+                    text = str(int(float(v))) if int_only else fmt.format(float(v))
+                except Exception:
+                    text = ""
+            w = edits[i]
+            # 同时兼容 QLabel 与 QLineEdit
+            if isinstance(w, (QtWidgets.QLabel, QtWidgets.QLineEdit)):
+                w.setText(text)
+
+    def _load_from_cfg(self):
+        # 中心频率
+        cfs = self._get_center_freqs()
+        self.chart_gain.setFrequencies(cfs); self.chart_resp.setFrequencies(cfs)
+        self._fill_row(self.gain_rows["通道中心频率"], cfs, int_only=True)
+        self._fill_row(self.resp_rows["通道中心频率"], cfs, int_only=True)
+        self._fill_row(self.show_rows["通道中心频率"], cfs, int_only=True)
+        # 曲线缓存
+        def toopt(arr): return [None if arr[i] is None or float(arr[i]) == 0 else float(arr[i]) for i in range(19)]
+        cfg = self.win.cfg
+        for name, arr, row in [("50", cfg.gain50_19, "50dB Gain"), ("65", cfg.gain65_19, "65dB Gain"),
+                               ("80", cfg.gain80_19, "80dB Gain"), ("L", cfg.gainL_19, "LdB Gain")]:
+            vals = toopt(arr); self.chart_gain.setSeries(name, vals); self._fill_row(self.gain_rows[row], vals)
+        for name, arr, row in [("50", cfg.resp50_19, "50dB Resp"), ("65", cfg.resp65_19, "65dB Resp"),
+                               ("80", cfg.resp80_19, "80dB Resp"), ("L", cfg.respL_19, "LdB Resp")]:
+            vals = toopt(arr); self.chart_resp.setSeries(name, vals); self._fill_row(self.resp_rows[row], vals)
+        # 显示区
+        self._fill_row(self.show_rows["MPO"], cfg.MPO); self._fill_row(self.show_rows["CT"], cfg.CT); self._fill_row(self.show_rows["CR"], cfg.CR)
+        
+        # GainAt_NL2 两行：源自 cfg.GainAt_NL2_gain / resp
+        ga_gain = cfg.GainAt_NL2_gain if isinstance(cfg.GainAt_NL2_gain, list) and len(cfg.GainAt_NL2_gain) == 19 else [0.0]*19
+        ga_resp = cfg.GainAt_NL2_resp if isinstance(cfg.GainAt_NL2_resp, list) and len(cfg.GainAt_NL2_resp) == 19 else [0.0]*19
+
+        self._fill_row(self.gain_rows["GainAt_NL2 Gain"], ga_gain)
+        self._fill_row(self.resp_rows["GainAt_NL2 Resp"], ga_resp)
+
+        self.chart_gain.setSeries("GA", [None if float(v)==0.0 else float(v) for v in ga_gain])
+        self.chart_resp.setSeries("GA", [None if float(v)==0.0 else float(v) for v in ga_resp])
+
+    def _on_params_changed(self):
+        try: self.win.cfg.L = int(float(self.L_edit.text().strip() or self.win.cfg.L))
+        except Exception: pass
+        self.win.cfg.target = int(self.target_combo.currentData())
+        self.win.cfg.limiting = int(self.limit_combo.currentData())
+        self.win.cfg.type = int(self.type_combo.currentData())
+        self.win.save_config(self.win.config_path)
+    
+    def _on_targetType_changed(self):
+        try:
+            self.win.cfg.targetType = int(self.targetType_combo.currentData())
+        except Exception:
+            self.win.cfg.targetType = 0
+        self.win.save_config(self.win.config_path)
+    
+    def _on_freqRequired_changed(self):
+        try:
+            self.win.cfg.freqRequired = int(self.freqRequired_combo.currentData())
+        except Exception:
+            self.win.cfg.freqRequired = 0
+        self.win.save_config(self.win.config_path)
+
+    def _on_clear_curves(self):
+        for title in ["50dB Gain","65dB Gain","80dB Gain","LdB Gain","GainAt_NL2 Gain"]:
+            self._fill_row(self.gain_rows[title], [None]*19)
+        for title in ["50dB Resp","65dB Resp","80dB Resp","LdB Resp","GainAt_NL2 Resp"]:
+            self._fill_row(self.resp_rows[title], [None]*19)
+        self.chart_gain.clearAll(); self.chart_resp.clearAll()
+        z = [0.0]*19
+        self.win.cfg.gain50_19 = z[:]; self.win.cfg.gain65_19 = z[:]; self.win.cfg.gain80_19 = z[:]; self.win.cfg.gainL_19 = z[:]; self.win.cfg.GainAt_NL2_gain = z[:]
+        self.win.cfg.resp50_19 = z[:]; self.win.cfg.resp65_19 = z[:]; self.win.cfg.resp80_19 = z[:]; self.win.cfg.respL_19 = z[:]; self.win.cfg.GainAt_NL2_resp = z[:]
+        self.win.save_config(self.win.config_path)
+
+    def _extract_gainat_return(self, resp: Dict[str, Any]) -> Optional[float]:
+        if not isinstance(resp, dict):
+            return None
+        # 顶层返回值
+        for k in ("return_value", "result", "value", "gainAt_value"):
+            if k in resp:
+                try:
+                    return float(resp[k])
+                except Exception:
+                    pass
+        # 兜底：有的实现放在 output_parameters
+        outp = resp.get("output_parameters", {})
+        if isinstance(outp, dict):
+            for k in ("gainAt_value", "value", "gain"):
+                if k in outp:
+                    try:
+                        return float(outp[k])
+                    except Exception:
+                        pass
+        return None
+
+    
+    def _parse_scalar_gainat(self, outp: Dict[str, Any]) -> Optional[float]:
+        # 优先常用键 gainAt_value，其次 gain/value；兼容嵌套 output_parameters
+        if not isinstance(outp, dict):
+            return None
+        for k in ("gainAt_value", "gain", "value"):
+            if k in outp:
+                v = outp[k]
+                try:
+                    return float(v)
+                except Exception:
+                    pass
+        if "output_parameters" in outp and isinstance(outp["output_parameters"], dict):
+            return self._parse_scalar_gainat(outp["output_parameters"])
+        return None
+    
+    def _on_gain_at(self):
+        if not self.win.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        c = self.win.cfg
+        try:
+            L_now = float(self.L_edit.text().strip() or c.L)
+        except Exception:
+            L_now = float(c.L)
+        tgtType = int(self.targetType_combo.currentData()) if self.targetType_combo.currentData() is not None else int(c.targetType)
+    
+        # 复制现有数组，以便累积更新
+        ga_gain = (c.GainAt_NL2_gain[:] if isinstance(c.GainAt_NL2_gain, list) and len(c.GainAt_NL2_gain)==19 else [0.0]*19)
+        ga_resp = (c.GainAt_NL2_resp[:] if isinstance(c.GainAt_NL2_resp, list) and len(c.GainAt_NL2_resp)==19 else [0.0]*19)
+        nmax = min(18, int(c.channels))  # 0..channels
+    
+        def worker():
+            mpo = c.MPO if isinstance(c.MPO, list) and len(c.MPO)==19 else [9999]*19
+            for i in range(nmax + 1):
+                params = {
+                    "freqRequired": i,
+                    "targetType": tgtType,
+                    "AC": c.AC, "BC": c.BC, "L": int(L_now), "limiting": c.limiting, "channels": c.channels,
+                    "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids,
+                    "bandWidth": c.bandWidth, "target": c.target, "aidType": c.aidType,
+                    "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType
+                }
+                resp = self._send("GainAt_NL2", params)
+                if not resp:
+                    continue
+                val = self._extract_gainat_return(resp)
+                if isinstance(val, (int, float)):
+                    # 写入对应下标
+                    ga_gain[i] = float(val)
+                    # 计算响应（+L 并限幅 MPO）
+                    ga_resp[i] = min(float(mpo[i]), ga_gain[i] + L_now)
+    
+            # 保存配置
+            self.win.cfg.GainAt_NL2_gain = ga_gain[:]
+            self.win.cfg.GainAt_NL2_resp = ga_resp[:]
+            self.win.save_config(self.win.config_path)
+    
+            # 刷新界面与黑线
+            self._fill_row(self.gain_rows["GainAt_NL2 Gain"], ga_gain)
+            self._fill_row(self.resp_rows["GainAt_NL2 Resp"], ga_resp)
+            self.chart_gain.setSeries("GA", [None if v==0.0 else v for v in ga_gain])
+            self.chart_resp.setSeries("GA", [None if v==0.0 else v for v in ga_resp])
+    
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_gain_at_single(self):
+        if not self.win.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        c = self.win.cfg
+        idx = int(self.freqRequired_combo.currentData()) if self.freqRequired_combo.currentData() is not None else int(c.freqRequired)
+        if idx < 0 or idx > 18:
+            idx = 0
+        try:
+            L_now = float(self.L_edit.text().strip() or c.L)
+        except Exception:
+            L_now = float(c.L)
+        tgtType = int(self.targetType_combo.currentData()) if self.targetType_combo.currentData() is not None else int(c.targetType)
+    
+        params = {
+            "freqRequired": idx,
+            "targetType": tgtType,
+            "AC": c.AC, "BC": c.BC, "L": int(L_now), "limiting": c.limiting, "channels": c.channels,
+            "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids,
+            "bandWidth": c.bandWidth, "target": c.target, "aidType": c.aidType,
+            "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType
+        }
+    
+        def worker():
+            resp = self._send("GainAt_NL2", params)
+            if not resp:
+                return
+            val = self._extract_gainat_return(resp)
+            if not isinstance(val, (int, float)):
+                return
+            val = float(val)
+    
+            # 更新数组该下标
+            ga_gain = (c.GainAt_NL2_gain[:] if isinstance(c.GainAt_NL2_gain, list) and len(c.GainAt_NL2_gain)==19 else [0.0]*19)
+            ga_resp = (c.GainAt_NL2_resp[:] if isinstance(c.GainAt_NL2_resp, list) and len(c.GainAt_NL2_resp)==19 else [0.0]*19)
+            ga_gain[idx] = val
+            mpo = c.MPO if isinstance(c.MPO, list) and len(c.MPO)==19 else [9999]*19
+            ga_resp[idx] = min(float(mpo[idx]), val + L_now)
+    
+            # 写回配置并刷新整行（简单可靠）
+            self.win.cfg.GainAt_NL2_gain = ga_gain[:]
+            self.win.cfg.GainAt_NL2_resp = ga_resp[:]
+            self.win.save_config(self.win.config_path)
+    
+            self._fill_row(self.gain_rows["GainAt_NL2 Gain"], ga_gain)
+            self._fill_row(self.resp_rows["GainAt_NL2 Resp"], ga_resp)
+            self.chart_gain.setSeries("GA", [None if v==0.0 else v for v in ga_gain])
+            self.chart_resp.setSeries("GA", [None if v==0.0 else v for v in ga_resp])
+    
+            # 单点返回值显示
+            self.gainat_ret_edit.setText(f"{val:.2f}")
+    
+        threading.Thread(target=worker, daemon=True).start()
+
+
+    # —— 网络封装 ——
+    def _send(self, function: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        # 子线程里不要做任何 GUI 操作；未连接直接返回
+        if not self.win.client.connected:
+            return None
+        req = {"function": function, "input_parameters": params}
+        prev = dict(req); prev["sequence_num"] = self.win.client.sequence_num
+        self._log("发送:\n" + json.dumps(prev, ensure_ascii=False, indent=2))
+        try:
+            resp = self.win.client.post_json(req)
+            self._log("响应:\n" + json.dumps(resp, ensure_ascii=False, indent=2))
+            self._sep()
+            return resp
+        except Exception as e:
+            self._log(f"错误: {e}"); self._sep(); return None
+
+    def _parse_array(self, outp: Dict[str, Any], keys: List[str]) -> Optional[List[float]]:
+        for k in keys:
+            if k in outp:
+                v = outp[k]
+                # 直接是数组
+                if isinstance(v, list):
+                    return [float(x) if x is not None else 0.0 for x in v]
+                # 有些实现会包一层字典
+                if isinstance(v, dict):
+                    for subk in ("values", "data", "arr", "array"):
+                        if subk in v and isinstance(v[subk], list):
+                            return [float(x) if x is not None else 0.0 for x in v[subk]]
+                    # 或者取第一个 list
+                    for sub in v.values():
+                        if isinstance(sub, list):
+                            return [float(x) if x is not None else 0.0 for x in sub]
+        # 兜底：有的实现再次嵌套 output_parameters
+        if "output_parameters" in outp and isinstance(outp["output_parameters"], dict):
+            return self._parse_array(outp["output_parameters"], keys)
+        return None
+
+    # —— 左侧按钮逻辑 ——
+    def _on_get_mpo(self):
+        if not self.win.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        c = self.win.cfg
+        params = {"type": c.type, "AC": c.AC, "BC": c.BC, "channels": c.channels, "limiting": c.limiting}
+        def worker():
+            resp = self._send("getMPO_NL2", params)
+            if not resp: return
+            outp = resp.get("output_parameters", {})
+            arr = self._parse_array(outp, ["MPO"])
+            if arr and len(arr) >= 19:
+                self.win.cfg.MPO = arr[:19]
+                self._fill_row(self.show_rows["MPO"], self.win.cfg.MPO)
+                self.win.save_config(self.win.config_path)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_get_cr(self):
+        if not self.win.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        c = self.win.cfg
+        cf = c.centerF if any(x != 0 for x in c.centerF) else FREQS_19[:]
+        params = {"channels": c.channels, "centreFreq": cf, "AC": c.AC, "BC": c.BC,
+                  "direction": c.direction, "mic": c.mic, "limiting": c.limiting,
+                  "ACother": c.ACother, "noOfAids": c.noOfAids}
+        def worker():
+            resp = self._send("CompressionRatio_NL2", params)
+            if not resp: return
+            outp = resp.get("output_parameters", {})
+            arr = self._parse_array(outp, ["CR"])
+            if arr and len(arr) >= 19:
+                self.win.cfg.CR = arr[:19]
+                self._fill_row(self.show_rows["CR"], self.win.cfg.CR)
+                self.win.save_config(self.win.config_path)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_get_gain(self, mode: str):
+        if not self.win.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        # mode: REIG/REAG/2cc/EarSim -> 函数 2/3/4/5
+        c = self.win.cfg
+        try: L_cur = int(float(self.L_edit.text().strip() or c.L))
+        except Exception: L_cur = c.L
+        if mode == "REIG":
+            fn = "RealEarInsertionGain_NL2"
+            params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
+                      "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
+            keys = ["REIG","gain","REIG19"]
+        elif mode == "REAG":
+            fn = "RealEarAidedGain_NL2"
+            params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
+                      "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
+            keys = ["REAG","gain","REAG19"]
+        elif mode == "2cc":
+            fn = "TccCouplerGain_NL2"
+            params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
+                      "direction": c.direction, "mic": c.mic, "target": c.target, "aidType": c.aidType,
+                      "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
+            keys = ["TccCG", "TccCG19", "gain", "gain19"]  #["TccCG","gain"]
+        else:  # EarSim
+            fn = "EarSimulatorGain_NL2"
+            params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "direction": c.direction, "mic": c.mic,
+                      "limiting": c.limiting, "channels": c.channels, "target": c.target, "aidType": c.aidType,
+                      "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
+            keys = ["ESG", "ESG19", "gain", "gain19"]  #["ESG","gain"]
+
+        def worker():
+            resp = self._send(fn, params)
+            if not resp: return
+            outp = resp.get("output_parameters", {})
+            arr = self._parse_array(outp, keys)
+            if not arr: return
+            arr = arr[:19]
+            # 写入 LdB Gain
+            self._fill_row(self.gain_rows["LdB Gain"], arr)
+            self.chart_gain.setSeries("L", [arr[i] for i in range(19)])
+            self.win.cfg.gainL_19 = arr[:]
+            # 计算 LdB Resp = Gain + L（限幅 MPO）
+            mpo = self.win.cfg.MPO if isinstance(self.win.cfg.MPO, list) and len(self.win.cfg.MPO) == 19 else [9999]*19
+            resp_vals = [min(mpo[i], float(arr[i]) + float(L_cur)) for i in range(19)]
+            self._fill_row(self.resp_rows["LdB Resp"], resp_vals)
+            self.chart_resp.setSeries("L", [resp_vals[i] for i in range(19)])
+            self.win.cfg.respL_19 = resp_vals[:]
+            self.win.save_config(self.win.config_path)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_std_curves(self, mode: str):
+        if not self.win.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        # L=50/65/80 连续调用 2/3/4/5，填入增益三行；再 +L 限幅至 MPO 得到响应三行
+        c = self.win.cfg
+        if mode == "REIG":
+            fn = "RealEarInsertionGain_NL2"; keys=["REIG","gain","REIG19"]
+            def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
+                                    "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
+        elif mode == "REAG":
+            fn = "RealEarAidedGain_NL2"; keys=["REAG","gain","REAG19"]
+            def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
+                                    "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
+        elif mode == "2cc":
+            fn = "TccCouplerGain_NL2"; keys=["TccCG", "TccCG19", "gain", "gain19"]  #["TccCG","gain"]
+            def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
+                                    "direction": c.direction, "mic": c.mic, "target": c.target, "aidType": c.aidType,
+                                    "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
+        else:
+            fn = "EarSimulatorGain_NL2"; keys=["ESG", "ESG19", "gain", "gain19"]  #["ESG","gain"]
+            def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "direction": c.direction, "mic": c.mic,
+                                    "limiting": c.limiting, "channels": c.channels, "target": c.target, "aidType": c.aidType,
+                                    "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
+
+        def worker():
+            results = {}
+            for Lv, tag in [(50,"50"),(65,"65"),(80,"80")]:
+                resp = self._send(fn, params(Lv))
+                if not resp: return
+                outp = resp.get("output_parameters", {})
+                arr = self._parse_array(outp, keys)
+                if not arr: return
+                results[tag] = arr[:19]
+            # 增益三行
+            self._fill_row(self.gain_rows["50dB Gain"], results["50"])
+            self._fill_row(self.gain_rows["65dB Gain"], results["65"])
+            self._fill_row(self.gain_rows["80dB Gain"], results["80"])
+            self.chart_gain.setSeries("50", results["50"])
+            self.chart_gain.setSeries("65", results["65"])
+            self.chart_gain.setSeries("80", results["80"])
+            self.win.cfg.gain50_19 = results["50"][:]
+            self.win.cfg.gain65_19 = results["65"][:]
+            self.win.cfg.gain80_19 = results["80"][:]
+            # 响应三行（+L 并限幅 MPO）
+            mpo = self.win.cfg.MPO if isinstance(self.win.cfg.MPO, list) and len(self.win.cfg.MPO) == 19 else [9999]*19
+            r50 = [min(mpo[i], results["50"][i] + 50.0) for i in range(19)]
+            r65 = [min(mpo[i], results["65"][i] + 65.0) for i in range(19)]
+            r80 = [min(mpo[i], results["80"][i] + 80.0) for i in range(19)]
+            self._fill_row(self.resp_rows["50dB Resp"], r50)
+            self._fill_row(self.resp_rows["65dB Resp"], r65)
+            self._fill_row(self.resp_rows["80dB Resp"], r80)
+            self.chart_resp.setSeries("50", r50)
+            self.chart_resp.setSeries("65", r65)
+            self.chart_resp.setSeries("80", r80)
+            self.win.cfg.resp50_19 = r50[:]
+            self.win.cfg.resp65_19 = r65[:]
+            self.win.cfg.resp80_19 = r80[:]
+            self.win.save_config(self.win.config_path)
+        threading.Thread(target=worker, daemon=True).start()
+
 class MainWindow(QtWidgets.QMainWindow):
     respReady = QtCore.Signal(str)
     errorReady = QtCore.Signal(str)
@@ -403,6 +1193,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.func_tab = QtWidgets.QWidget()
         self.tabs.addTab(self.func_tab, "  函数测试  ")
         self._build_functions_test_tab(self.func_tab)
+       
+        self.gr_tab = GainRespTab(self)
+        self.tabs.addTab(self.gr_tab, "  增益/响应曲线  ")
 
     def _build_top_connect_bar(self, parent_layout: QtWidgets.QLayout):
         top = QtWidgets.QGridLayout()
@@ -1393,8 +2186,7 @@ class MainWindow(QtWidgets.QMainWindow):
         s = self._compact_numeric_arrays(s)
         with open(path, "w", encoding="utf-8") as f:
             f.write(s)
-        if hasattr(self, 'lbl_cfg'):
-            self.lbl_cfg.setText(f"Current file: {os.path.basename(path)}")
+        self.lbl_cfg.setText(f"Current file: {os.path.basename(path)}")
 
     def on_load_config(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "选择配置文件", "", "JSON (*.json);;All (*.*)")
@@ -1422,6 +2214,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refresh_outputs_view()
         self.autosave_config()
         self.update_rrr_entries_from_cfg()
+        
+        if hasattr(self, "gr_tab"):
+            self.gr_tab._load_from_cfg()
 
     def on_saveas_config(self):
         path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "另存配置为", "", "JSON (*.json);;All (*.*)")

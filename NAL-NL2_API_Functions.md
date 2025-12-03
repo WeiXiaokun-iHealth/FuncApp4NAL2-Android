@@ -267,7 +267,7 @@ int AidedThreshold_NL2(
 // 依赖: 15或16 (如果返回用户输入值)
 int GetREDDindiv(
     output double REDD[19],         // REDD值
-    input int defValues            // 数据来源: 0=预测, 1=客户数据
+    input int REDD_defValues            // 数据来源: 0=预测, 1=客户数据
 ) -> int                           // 返回: 0=成功
 ```
 
@@ -280,7 +280,7 @@ int GetREDDindiv(
 // 依赖: 15或16 (如果返回用户输入值)
 int GetREDDindiv9(
     output double REDD[9],          // REDD值
-    input int defValues            // 数据来源: 0=预测, 1=客户数据
+    input int REDD_defValues            // 数据来源: 0=预测, 1=客户数据
 ) -> int                           // 返回: 0=成功
 ```
 
@@ -293,7 +293,7 @@ int GetREDDindiv9(
 // 依赖: 17或18 (如果返回用户输入值)
 int GetREURindiv(
     output double REUR[19],         // REUR值
-    input int defValues,           // 数据来源: 0=预测, 1=客户数据
+    input int REUR_defValues,           // 数据来源: 0=预测, 1=客户数据
     input int dateOfBirth,         // 出生日期 (YYYYMMDD格式)
     input int direction,           // 声音方向: 0=0度, 1=45度
     input int mic                  // 麦克风位置: 0=自由场, 1=头表面
@@ -309,7 +309,7 @@ int GetREURindiv(
 // 依赖: 17或18 (如果返回用户输入值)
 int GetREURindiv9(
     output double REUR[9],          // REUR值
-    input int defValues,           // 数据来源: 0=预测, 1=客户数据
+    input int REUR_defValues,           // 数据来源: 0=预测, 1=客户数据
     input int dateOfBirth,         // 出生日期 (YYYYMMDD格式)
     input int direction,           // 声音方向: 0=0度, 1=45度
     input int mic                  // 麦克风位置: 0=自由场, 1=头表面
@@ -325,7 +325,7 @@ int GetREURindiv9(
 // 依赖: 45或46 (如果设置预测值)
 int SetREDDindiv(
     input double REDD[19],          // 要存储的REDD值
-    input int defValues            // 数据类型: 0=预测, 1=客户数据
+    input int REDD_defValues            // 数据类型: 0=预测, 1=客户数据
 ) -> int                           // 返回: 0=成功
 ```
 
@@ -338,7 +338,7 @@ int SetREDDindiv(
 // 依赖: 45或46 (如果设置预测值)
 int SetREDDindiv9(
     input double REDD[9],           // 要存储的REDD值
-    input int defValues            // 数据类型: 0=预测, 1=客户数据
+    input int REDD_defValues            // 数据类型: 0=预测, 1=客户数据
 ) -> int                           // 返回: 0=成功
 ```
 
@@ -351,7 +351,7 @@ int SetREDDindiv9(
 // 依赖: 无
 int SetREURindiv(
     input double REUR[19],          // 要存储的REUR值
-    input int defValues,           // 数据类型: 0=预测, 1=客户数据
+    input int REUR_defValues,           // 数据类型: 0=预测, 1=客户数据
     input int dateOfBirth,          // 出生日期 (YYYYMMDD格式)
     input int direction,           // 声音方向: 0=0度, 1=45度
     input int mic                  // 麦克风位置: 0=自由场, 1=头表面
@@ -367,7 +367,7 @@ int SetREURindiv(
 // 依赖: 无
 int SetREURindiv9(
     input double REUR[9],           // 要存储的REUR值
-    input int defValues,           // 数据类型: 0=预测, 1=客户数据
+    input int REUR_defValues,           // 数据类型: 0=预测, 1=客户数据
     input int dateOfBirth,          // 出生日期 (YYYYMMDD格式)
     input int direction,           // 声音方向: 0=0度, 1=45度
     input int mic                  // 麦克风位置: 0=自由场, 1=头表面
