@@ -146,7 +146,9 @@ public class Nal2Manager {
             OutputResult result = NativeManager.getInstance(context).CrossOverFrequencies_NL2(cfArr, channels, acDouble,
                     bcDouble, freqInCh);
 
+            // 根据PDF映射表：CFArray[] -> getOutput1(), FreqInCh[] -> getOutput2b()
             double[] cfArray = getOutputData(result, cfArr);
+            int[] outputFreqInCh = getOutput2b(result, freqInCh);
 
             StringBuilder cfLog = new StringBuilder("CFArray: [");
             for (int i = 0; i < cfArray.length; i++) {
@@ -158,15 +160,15 @@ public class Nal2Manager {
             sendLog(TAG, "DEBUG", cfLog.toString());
 
             StringBuilder freqLog = new StringBuilder("FreqInCh: [");
-            for (int i = 0; i < freqInCh.length; i++) {
+            for (int i = 0; i < outputFreqInCh.length; i++) {
                 if (i > 0)
                     freqLog.append(", ");
-                freqLog.append(freqInCh[i]);
+                freqLog.append(outputFreqInCh[i]);
             }
             freqLog.append("]");
             sendLog(TAG, "DEBUG", freqLog.toString());
 
-            return new CrossOverFrequenciesResult(cfArray, freqInCh);
+            return new CrossOverFrequenciesResult(cfArray, outputFreqInCh);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取交叉频率失败: " + e.getMessage());
             return new CrossOverFrequenciesResult(cfArr, freqInCh);
@@ -323,7 +325,10 @@ public class Nal2Manager {
             double[] reiounl = new double[100];
             OutputResult result = NativeManager.getInstance(context).RealEarInputOutputCurve_NL2(reio, reiounl, ac, bc,
                     graphFreq, startLevel, finishLevel, limiting, channels, direction, mic, target, acOther, noOfAids);
-            return new InputOutputCurveResult(getOutputData(result, reio), reiounl);
+            // 根据PDF映射表：REIO[] -> getOutput1(), REIOunl[] -> getOutput2()
+            double[] outputREIO = getOutputData(result, reio);
+            double[] outputREIOunl = getOutput2(result, reiounl);
+            return new InputOutputCurveResult(outputREIO, outputREIOunl);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取RealEarInputOutputCurve失败: " + e.getMessage());
             return new InputOutputCurveResult(new double[100], new double[100]);
@@ -353,7 +358,12 @@ public class Nal2Manager {
             OutputResult result = NativeManager.getInstance(context).TccInputOutputCurve_NL2(tccIO, tccIOunl, ac, bc,
                     graphFreq, startLevel, finishLevel, limiting, channels, direction, mic, target, aidType, acOther,
                     noOfAids, tubing, vent, RECDmeasType, lineType);
-            return new TccInputOutputCurveResult(getOutputData(result, tccIO), tccIOunl, lineType);
+            // 根据PDF映射表：TccIO[] -> getOutput1(), TccIOunl[] -> getOutput2(), lineType ->
+            // getOutput3b()
+            double[] outputTccIO = getOutputData(result, tccIO);
+            double[] outputTccIOunl = getOutput2(result, tccIOunl);
+            int[] outputLineType = getOutput3b(result, lineType);
+            return new TccInputOutputCurveResult(outputTccIO, outputTccIOunl, outputLineType);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取TccInputOutputCurve失败: " + e.getMessage());
             return new TccInputOutputCurveResult(new double[100], new double[100], new int[100]);
@@ -383,7 +393,12 @@ public class Nal2Manager {
             OutputResult result = NativeManager.getInstance(context).EarSimulatorInputOutputCurve_NL2(esIO, esIOunl, ac,
                     bc, graphFreq, startLevel, finishLevel, limiting, channels, direction, mic, target, aidType,
                     acOther, noOfAids, tubing, vent, RECDmeasType, lineType);
-            return new EarSimulatorInputOutputCurveResult(getOutputData(result, esIO), esIOunl, lineType);
+            // 根据PDF映射表：ESIO[] -> getOutput1(), ESIOunl[] -> getOutput2(), lineType ->
+            // getOutput3b()
+            double[] outputESIO = getOutputData(result, esIO);
+            double[] outputESIOunl = getOutput2(result, esIOunl);
+            int[] outputLineType = getOutput3b(result, lineType);
+            return new EarSimulatorInputOutputCurveResult(outputESIO, outputESIOunl, outputLineType);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取EarSimulatorInputOutputCurve失败: " + e.getMessage());
             return new EarSimulatorInputOutputCurveResult(new double[100], new double[100], new int[100]);
@@ -414,7 +429,13 @@ public class Nal2Manager {
             double[] speechThresh = new double[19];
             OutputResult result = NativeManager.getInstance(context).Speech_o_Gram_NL2(speechRms, speechMax, speechMin,
                     speechThresh, ac, bc, L, limiting, channels, direction, mic, acOther, noOfAids);
-            return new SpeechOGramResult(getOutputData(result, speechRms), speechMax, speechMin, speechThresh);
+            // 根据PDF映射表：Speech_rms[] -> getOutput1(), Speech_max[] -> getOutput2(),
+            // Speech_min[] -> getOutput3(), Speech_thresh[] -> getOutput4()
+            double[] outputSpeechRms = getOutputData(result, speechRms);
+            double[] outputSpeechMax = getOutput2(result, speechMax);
+            double[] outputSpeechMin = getOutput3(result, speechMin);
+            double[] outputSpeechThresh = getOutput4(result, speechThresh);
+            return new SpeechOGramResult(outputSpeechRms, outputSpeechMax, outputSpeechMin, outputSpeechThresh);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取SpeechOGram失败: " + e.getMessage());
             return new SpeechOGramResult(new double[19], new double[19], new double[19], new double[19]);
@@ -508,9 +529,10 @@ public class Nal2Manager {
     public int[] getCenterFrequencies(int channels, double[] cfArray) {
         try {
             int[] centerF = new int[channels];
-            // 调用SDK的CenterFrequencies函数
-            NativeManager.getInstance(context).CenterFrequencies(centerF, cfArray, channels);
-            return centerF;
+            // 根据PDF映射表：centerF[] -> getOutput1b()
+            OutputResult result = NativeManager.getInstance(context).CenterFrequencies(centerF, cfArray, channels);
+            int[] outputCenterF = getOutput1b(result, centerF);
+            return outputCenterF;
         } catch (Exception e) {
             String errorMsg = "获取中心频率失败: " + e.getMessage();
             sendLog(TAG, "ERROR", errorMsg);
@@ -593,7 +615,9 @@ public class Nal2Manager {
                     limiting, channels, direction, mic, target, aidType, acOther, noOfAids, tubing, vent, RECDmeasType,
                     lineType);
             double[] tccGain = getOutputData(result, gain);
-            return new TccCouplerGainResult(tccGain, lineType);
+            // 根据PDF映射表：TccCG -> getOutput1(), lineType[] -> getOutput2b()
+            int[] outputLineType = getOutput2b(result, lineType);
+            return new TccCouplerGainResult(tccGain, outputLineType);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取TCC增益失败: " + e.getMessage());
             return new TccCouplerGainResult(gain, lineType);
@@ -623,7 +647,9 @@ public class Nal2Manager {
                     direction, mic, limiting, channels, target, aidType, acOther, noOfAids, tubing, vent,
                     RECDmeasType, lineType);
             double[] esg = getOutputData(result, gain);
-            return new EarSimulatorGainResult(esg, lineType);
+            // 根据PDF映射表：ESG[] -> getOutput1(), lineType -> getOutput2b()
+            int[] outputLineType = getOutput2b(result, lineType);
+            return new EarSimulatorGainResult(esg, outputLineType);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取EarSimulator增益失败: " + e.getMessage());
             return new EarSimulatorGainResult(gain, lineType);
@@ -646,6 +672,126 @@ public class Nal2Manager {
             }
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取OutputResult数据失败: " + e.getMessage());
+            return defaultValue;
+        }
+    }
+
+    // 通过反射获取OutputResult中的double[]数据 (getOutput2)
+    private double[] getOutput2(OutputResult result, double[] defaultValue) {
+        try {
+            // 尝试使用getOutput2方法
+            try {
+                Method method = result.getClass().getMethod("getOutput2");
+                return (double[]) method.invoke(result);
+            } catch (Exception e) {
+                sendLog(TAG, "WARN", "获取output2方法失败，尝试直接访问字段: " + e.getMessage());
+                // 尝试直接访问output2字段
+                Field field = result.getClass().getDeclaredField("output2");
+                field.setAccessible(true);
+                return (double[]) field.get(result);
+            }
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "获取OutputResult的output2数据失败: " + e.getMessage());
+            return defaultValue;
+        }
+    }
+
+    // 通过反射获取OutputResult中的double[]数据 (getOutput3)
+    private double[] getOutput3(OutputResult result, double[] defaultValue) {
+        try {
+            // 尝试使用getOutput3方法
+            try {
+                Method method = result.getClass().getMethod("getOutput3");
+                return (double[]) method.invoke(result);
+            } catch (Exception e) {
+                sendLog(TAG, "WARN", "获取output3方法失败，尝试直接访问字段: " + e.getMessage());
+                // 尝试直接访问output3字段
+                Field field = result.getClass().getDeclaredField("output3");
+                field.setAccessible(true);
+                return (double[]) field.get(result);
+            }
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "获取OutputResult的output3数据失败: " + e.getMessage());
+            return defaultValue;
+        }
+    }
+
+    // 通过反射获取OutputResult中的double[]数据 (getOutput4)
+    private double[] getOutput4(OutputResult result, double[] defaultValue) {
+        try {
+            // 尝试使用getOutput4方法
+            try {
+                Method method = result.getClass().getMethod("getOutput4");
+                return (double[]) method.invoke(result);
+            } catch (Exception e) {
+                sendLog(TAG, "WARN", "获取output4方法失败，尝试直接访问字段: " + e.getMessage());
+                // 尝试直接访问output4字段
+                Field field = result.getClass().getDeclaredField("output4");
+                field.setAccessible(true);
+                return (double[]) field.get(result);
+            }
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "获取OutputResult的output4数据失败: " + e.getMessage());
+            return defaultValue;
+        }
+    }
+
+    // 通过反射获取OutputResult中的int[]数据 (getOutput1b)
+    private int[] getOutput1b(OutputResult result, int[] defaultValue) {
+        try {
+            // 尝试使用getOutput1b方法
+            try {
+                Method method = result.getClass().getMethod("getOutput1b");
+                return (int[]) method.invoke(result);
+            } catch (Exception e) {
+                sendLog(TAG, "WARN", "获取output1b方法失败，尝试直接访问字段: " + e.getMessage());
+                // 尝试直接访问output1b字段
+                Field field = result.getClass().getDeclaredField("output1b");
+                field.setAccessible(true);
+                return (int[]) field.get(result);
+            }
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "获取OutputResult的output1b数据失败: " + e.getMessage());
+            return defaultValue;
+        }
+    }
+
+    // 通过反射获取OutputResult中的int[]数据 (getOutput2b)
+    private int[] getOutput2b(OutputResult result, int[] defaultValue) {
+        try {
+            // 尝试使用getOutput2b方法
+            try {
+                Method method = result.getClass().getMethod("getOutput2b");
+                return (int[]) method.invoke(result);
+            } catch (Exception e) {
+                sendLog(TAG, "WARN", "获取output2b方法失败，尝试直接访问字段: " + e.getMessage());
+                // 尝试直接访问output2b字段
+                Field field = result.getClass().getDeclaredField("output2b");
+                field.setAccessible(true);
+                return (int[]) field.get(result);
+            }
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "获取OutputResult的output2b数据失败: " + e.getMessage());
+            return defaultValue;
+        }
+    }
+
+    // 通过反射获取OutputResult中的int[]数据 (getOutput3b)
+    private int[] getOutput3b(OutputResult result, int[] defaultValue) {
+        try {
+            // 尝试使用getOutput3b方法
+            try {
+                Method method = result.getClass().getMethod("getOutput3b");
+                return (int[]) method.invoke(result);
+            } catch (Exception e) {
+                sendLog(TAG, "WARN", "获取output3b方法失败，尝试直接访问字段: " + e.getMessage());
+                // 尝试直接访问output3b字段
+                Field field = result.getClass().getDeclaredField("output3b");
+                field.setAccessible(true);
+                return (int[]) field.get(result);
+            }
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "获取OutputResult的output3b数据失败: " + e.getMessage());
             return defaultValue;
         }
     }
@@ -698,7 +844,11 @@ public class Nal2Manager {
             double[] bwc = new double[19];
             double[] escd = new double[19];
             OutputResult result = NativeManager.getInstance(context).ReturnValues_NL2(maf, bwc, escd);
-            return new ReturnValuesResult(getOutputData(result, maf), bwc, escd);
+            // 根据PDF映射表：MAF[] -> getOutput1(), BWC[] -> getOutput2(), ESCD[] -> getOutput3()
+            double[] outputMAF = getOutputData(result, maf);
+            double[] outputBWC = getOutput2(result, bwc);
+            double[] outputESCD = getOutput3(result, escd);
+            return new ReturnValuesResult(outputMAF, outputBWC, outputESCD);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取ReturnValues失败: " + e.getMessage());
             return new ReturnValuesResult(new double[19], new double[19], new double[19]);

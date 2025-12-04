@@ -11,7 +11,7 @@ from requests.exceptions import RequestException
 from PySide6 import QtCore, QtGui, QtWidgets
 
 APP_NAME = "NAL-NL2 API Caller Client"
-APP_VERSION = "Ver2025.12.02-2"
+APP_VERSION = "Ver2025.12.03-1"
 
 DEFAULT_CONFIG_FILE = "nal_nl2_config.json"
 DEFAULT_TEMPLATES_FILE = "function_templates.json"
@@ -1270,36 +1270,38 @@ class MainWindow(QtWidgets.QMainWindow):
             parent_layout.addWidget(cb, row, col*2+1, QtCore.Qt.AlignmentFlag.AlignLeft)
             return cb
 
-        # 用户设置
+        # 用户设置（3列2行）
         gb_user = QtWidgets.QGroupBox("用户设置")
         left.addWidget(gb_user)
         grid_user = QtWidgets.QGridLayout(gb_user)
 
+        # 行1：成人/儿童(adultChild) | 出生日期(YYYYMMDD) | 性别(gender)
         self.adultChild_combo = mk_combo(grid_user, 0, 0, "成人/儿童(adultChild)",
                                          [(0,"成人(adult)"),(1,"儿童(child)"),(2,"按出生日期计算(calculate from date of birth)")],
                                          self.cfg.adultChild)
-        lab_dob = QtWidgets.QLabel("出生日期(YYYYMMDD)"); lab_dob.setFixedWidth(self.LABEL_W)
-        self.dob_edit = QtWidgets.QLineEdit(str(self.cfg.dateOfBirth)); self.dob_edit.setFixedWidth(self.COMBO_W)
-        #grid_user.addWidget(lab_dob, 0, 2*2, QtCore.Qt.AlignmentFlag.AlignLeft)
-        #grid_user.addWidget(self.dob_edit, 0, 2*2+1, QtCore.Qt.AlignmentFlag.AlignLeft)
-        grid_user.addWidget(lab_dob, 0, 2, QtCore.Qt.AlignmentFlag.AlignLeft)
-        grid_user.addWidget(self.dob_edit, 0, 3, QtCore.Qt.AlignmentFlag.AlignLeft)
+        lab_dob = QtWidgets.QLabel("出生日期(YYYYMMDD)")
+        lab_dob.setFixedWidth(self.LABEL_W)
+        self.dob_edit = QtWidgets.QLineEdit(str(self.cfg.dateOfBirth))
+        self.dob_edit.setFixedWidth(self.COMBO_W)
+        grid_user.addWidget(lab_dob, 0, 1*2, QtCore.Qt.AlignmentFlag.AlignLeft)
+        grid_user.addWidget(self.dob_edit, 0, 1*2+1, QtCore.Qt.AlignmentFlag.AlignLeft)
 
-        self.gender_combo = mk_combo(grid_user, 1, 0, "性别(gender)",
+        self.gender_combo = mk_combo(grid_user, 0, 2, "性别(gender)",
                                      [(0,"未知(unknown)"),(1,"男(male)"),(2,"女(female)")],
                                      self.cfg.gender)
-        self.tonal_combo = mk_combo(grid_user, 1, 1, "语言类型(tonal)",
+
+        # 行2：语言类型(tonal) | 经验(experience) | 压缩速度(compSpeed)
+        self.tonal_combo = mk_combo(grid_user, 1, 0, "语言类型(tonal)",
                                     [(0,"非声调(non-tonal)"),(1,"声调(tonal)")],
                                     self.cfg.tonal)
-
-        self.experience_combo = mk_combo(grid_user, 2, 0, "经验(experience)",
+        self.experience_combo = mk_combo(grid_user, 1, 1, "经验(experience)",
                                          [(0,"有经验(experienced)"),(1,"新用户(new user)")],
                                          self.cfg.experience)
-        self.compSpeed_combo = mk_combo(grid_user, 2, 1, "压缩速度(compSpeed)",
+        self.compSpeed_combo = mk_combo(grid_user, 1, 2, "压缩速度(compSpeed)",
                                         [(0,"慢(slow)"),(1,"快(fast)"),(2,"双速(dual)")],
                                         self.cfg.compSpeed)
 
-        grid_user.setColumnStretch(4, 1)
+        grid_user.setColumnStretch(6, 1)
 
         # 听阈
         gb_thr = QtWidgets.QGroupBox("听阈(dB HL) :      250      500      1000      1500      2000     3000     4000     6000     8000 Hz (999 表示未测)")
@@ -1309,101 +1311,66 @@ class MainWindow(QtWidgets.QMainWindow):
         self.BC_edits = self._mk_array_row(v_thr, "BC[9]:", self.cfg.BC)
         self.ACother_edits = self._mk_array_row(v_thr, "ACother[9]:", self.cfg.ACother)
 
-        # 助听器/测量相关
+        # 助听器/测量相关（每行3个）
         gb_ha = QtWidgets.QGroupBox("助听器/测量相关")
         left.addWidget(gb_ha)
         grid_ha = QtWidgets.QGridLayout(gb_ha)
 
+        # 行1：channels | bandWidth | selection
         self.channels_combo = mk_combo(grid_ha, 0, 0, "通道数(channels)", [(i,str(i)) for i in range(1,19)], self.cfg.channels)
-        self.direction_combo = mk_combo(grid_ha, 0, 1, "声音方向(direction)", [(0,"0°"),(1,"45°")], self.cfg.direction)
-        self.bandWidth_combo = mk_combo(grid_ha, 1, 0, "噪声带宽(bandWidth)", [(0,"宽带(broadband)"),(1,"窄带(narrowband)")], self.cfg.bandWidth)
-        self.mic_combo = mk_combo(grid_ha, 1, 1, "麦克风参考位置(mic)", [(0,"自由场(undisturbed field)"),(1,"头表面(head surface)")], self.cfg.mic)
-        self.selection_combo_cfg = mk_combo(grid_ha, 2, 0, "CT的增益类型(selection)", [(0,"REIG"),(1,"REAG"),(2,"2cc"),(3,"EarSimulator")], self.cfg.selection)
+        self.bandWidth_combo = mk_combo(grid_ha, 0, 1, "噪声带宽(bandWidth)", [(0,"宽带(broadband)"),(1,"窄带(narrowband)")], self.cfg.bandWidth)
+        self.selection_combo_cfg = mk_combo(grid_ha, 0, 2, "CT的增益类型(selection)", [(0,"REIG"),(1,"REAG"),(2,"2cc"),(3,"EarSimulator")], self.cfg.selection)
+
+        # 行2：WBCT | aidType | direction
+        lab_wbct = QtWidgets.QLabel("宽带压缩阈值(WBCT)")
+        lab_wbct.setFixedWidth(self.LABEL_W)
+        self.WBCT_edit = QtWidgets.QLineEdit(str(self.cfg.WBCT))
+        self.WBCT_edit.setFixedWidth(self.EDIT_W)
+        grid_ha.addWidget(lab_wbct, 1, 0*2, QtCore.Qt.AlignmentFlag.AlignLeft)
+        grid_ha.addWidget(self.WBCT_edit, 1, 0*2+1, QtCore.Qt.AlignmentFlag.AlignLeft)
+
+        self.aidType_combo = mk_combo(grid_ha, 1, 1, "助听器类型(aidType)", [(0,"CIC"),(1,"ITC"),(2,"ITE"),(3,"BTE")], self.cfg.aidType)
+        self.direction_combo = mk_combo(grid_ha, 1, 2, "声音方向(direction)", [(0,"0°"),(1,"45°")], self.cfg.direction)
+
+        # 行3：mic | limiting | noOfAids
+        self.mic_combo = mk_combo(grid_ha, 2, 0, "麦克风参考位置(mic)", [(0,"自由场(undisturbed field)"),(1,"头表面(head surface)")], self.cfg.mic)
         self.limiting_combo = mk_combo(grid_ha, 2, 1, "限制类型(limiting)", [(0,"关(off)"),(1,"宽带(wideband)"),(2,"多通道(multichannel)")], self.cfg.limiting)
+        self.noOfAids_combo = mk_combo(grid_ha, 2, 2, "助听器数量(noOfAids)", [(0,"单侧(unilateral)"),(1,"双侧(bilateral)")], self.cfg.noOfAids)
 
-        lab_wbct = QtWidgets.QLabel("宽带压缩阈值(WBCT)"); lab_wbct.setFixedWidth(self.LABEL_W)
-        self.WBCT_edit = QtWidgets.QLineEdit(str(self.cfg.WBCT)); self.WBCT_edit.setFixedWidth(self.EDIT_W)
-        grid_ha.addWidget(lab_wbct, 3, 0, QtCore.Qt.AlignmentFlag.AlignLeft)
-        grid_ha.addWidget(self.WBCT_edit, 3, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
-        self.noOfAids_combo = mk_combo(grid_ha, 3, 1, "助听器数量(noOfAids)", [(0,"单侧(unilateral)"),(1,"双侧(bilateral)")], self.cfg.noOfAids)
+        grid_ha.setColumnStretch(6, 1)
 
-        self.aidType_combo = mk_combo(grid_ha, 4, 0, "助听器类型(aidType)", [(0,"CIC(completely in canal)"),(1,"ITC(in the canal)"),(2,"ITE(in the ear)"),(3,"BTE(behind the ear)")], self.cfg.aidType)
-
-        grid_ha.setColumnStretch(4, 1)
-
-        # 管路/通气/耦合器/插入件
+        # 管路/通气/耦合器/插入件（每行3个；第二行2个）
         gb_fit = QtWidgets.QGroupBox("管路/通气/耦合器/插入件")
         left.addWidget(gb_fit)
         grid_fit = QtWidgets.QGridLayout(gb_fit)
 
+        # 行1：tubing | vent | coupler
         self.tubing_combo = mk_combo(grid_fit, 0, 0, "导管(tubing)", [(0,"Libby4"),(1,"Libby3"),(2,"#13"),(3,"Thintube"),(4,"RITC"),(5,"None")], self.cfg.tubing)
-        self.fittingDepth_combo = mk_combo(grid_fit, 0, 1, "验配深度(fittingDepth)", [(0,"标准(standard)"),(1,"深(deep)"),(2,"浅(shallow)")], self.cfg.fittingDepth)
-        self.vent_combo = mk_combo(grid_fit, 1, 0, "开口(vent)", [(0,"紧(Tight)"),(1,"堵耳(Occluded)"),(2,"封闭帽(Closed Dome)"),(3,"1mm"),(4,"2mm"),(5,"3mm"),(6,"开放帽(Open Dome)")], self.cfg.vent)
+        self.vent_combo = mk_combo(grid_fit, 0, 1, "开口(vent)", [(0,"紧(Tight)"),(1,"塞耳(Occluded)"),(2,"封闭帽(Closed Dome)"),(3,"1mm"),(4,"2mm"),(5,"3mm"),(6,"开放帽(Open Dome)")], self.cfg.vent)
+        self.coupler_combo = mk_combo(grid_fit, 0, 2, "耦合腔(coupler)", [(0,"HA1"),(1,"HA2")], self.cfg.coupler)
+
+        # 行2：fittingDepth | earpiece
+        self.fittingDepth_combo = mk_combo(grid_fit, 1, 0, "验配深度(fittingDepth)", [(0,"标准(standard)"),(1,"深(deep)"),(2,"浅(shallow)")], self.cfg.fittingDepth)
         self.earpiece_combo = mk_combo(grid_fit, 1, 1, "耳塞(earpiece)", [(0,"泡沫耳塞(Foam Tip)"),(1,"自有耳模(Own Mold)")], self.cfg.earpiece)
-        self.coupler_combo = mk_combo(grid_fit, 2, 0, "耦合腔(coupler)", [(0,"HA1"),(1,"HA2")], self.cfg.coupler)
 
-        grid_fit.setColumnStretch(4, 1)
+        grid_fit.setColumnStretch(6, 1)
 
-        # RECD/REDD/REUR 类型选择
-        gb_types = QtWidgets.QGroupBox("RECD/REDD/REUR")
+        
+        # RECD/REDD/REUR类型选择
+        gb_types = QtWidgets.QGroupBox("RECD/REDD/REUR类型选择")
         left.addWidget(gb_types)
         grid_types = QtWidgets.QGridLayout(gb_types)
+
         self.RECDmeasType_combo = mk_combo(grid_types, 0, 0, "RECD数据类型(RECDmeasType)", [(0,"预估值(Predicted)"),(1,"实测值(Measured)")], self.cfg.RECDmeasType)
         self.REDD_defValues_combo = mk_combo(grid_types, 0, 1, "REDD数据类型(REDD_defValues)", [(0,"预估值(Predicted)"),(1,"用户数据(use client data)")], self.cfg.REDD_defValues)
-        self.REUR_defValues_combo = mk_combo(grid_types, 1, 0, "REUR数据类型(REUR_defValues)", [(0,"预估值(Predicted)"),(1,"用户数据(use client data)")], self.cfg.REUR_defValues)
+        self.REUR_defValues_combo = mk_combo(grid_types, 0, 2, "REUR数据类型(REUR_defValues)", [(0,"预估值(Predicted)"),(1,"用户数据(use client data)")], self.cfg.REUR_defValues)
 
-        grid_types.setColumnStretch(4, 1)
+        grid_types.setColumnStretch(6, 1)
 
-        '''
         # RECD/REDD/REUR 读写与显示
         gb_rrr = QtWidgets.QGroupBox("RECD/REDD/REUR 读写与显示")
         left.addWidget(gb_rrr)
         v_rrr = QtWidgets.QVBoxLayout(gb_rrr)
-
-        row_btn = QtWidgets.QHBoxLayout()
-        v_rrr.addLayout(row_btn)
-        btn_get_19 = QtWidgets.QPushButton("获取RECD/REDD/REUR")
-        btn_get_9 = QtWidgets.QPushButton("获取RECD9/REDD9/REUR9")
-        row_btn.addWidget(btn_get_19)
-        row_btn.addWidget(btn_get_9)
-        btn_set_row = QtWidgets.QHBoxLayout()
-        v_rrr.addLayout(btn_set_row)
-        btn_set_19 = QtWidgets.QPushButton("设置RECD/REDD/REUR")
-        btn_set_9 = QtWidgets.QPushButton("设置RECD9/REDD9/REUR9")
-        btn_set_row.addWidget(btn_set_19)
-        btn_set_row.addWidget(btn_set_9)
-        '''
-        
-        # RECD/REDD/REUR 读写与显示
-        gb_rrr = QtWidgets.QGroupBox("RECD/REDD/REUR 读写与显示")
-        left.addWidget(gb_rrr)
-        v_rrr = QtWidgets.QVBoxLayout(gb_rrr)
-        # ------------------- 第一行按钮 -------------------
-        row_btn = QtWidgets.QHBoxLayout()
-        v_rrr.addLayout(row_btn)
-
-        btn_get_19 = QtWidgets.QPushButton("获取RECD/REDD/REUR")
-        btn_get_19.setFixedWidth(160) # 设置固定宽度，你可以根据需要调整这个值
-        btn_get_9 = QtWidgets.QPushButton("获取RECD9/REDD9/REUR9")
-        btn_get_9.setFixedWidth(160) # 保持宽度一致
-
-        row_btn.addWidget(btn_get_19)
-        row_btn.addSpacing(4) # 在按钮之间添加8像素的固定间隔
-        row_btn.addWidget(btn_get_9)
-        row_btn.addStretch() # 添加伸缩空间，将按钮推向左侧
-        # ------------------- 第二行按钮 -------------------
-        btn_set_row = QtWidgets.QHBoxLayout()
-        v_rrr.addLayout(btn_set_row)
-
-        btn_set_19 = QtWidgets.QPushButton("设置RECD/REDD/REUR")
-        btn_set_19.setFixedWidth(160) # 设置固定宽度
-        btn_set_9 = QtWidgets.QPushButton("设置RECD9/REDD9/REUR9")
-        btn_set_9.setFixedWidth(160) # 保持宽度一致
-
-        btn_set_row.addWidget(btn_set_19)
-        btn_set_row.addSpacing(4) # 在按钮之间添加8像素的固定间隔
-        btn_set_row.addWidget(btn_set_9)
-        btn_set_row.addStretch() # 添加伸缩空间，将按钮推向左侧
 
         # 19频率表头
         hdr = QtWidgets.QHBoxLayout()
@@ -1445,7 +1412,7 @@ class MainWindow(QtWidgets.QMainWindow):
         hdr9.addStretch()
         v_rrr.addLayout(hdr9)
 
-        def mk_row9(name: str) -> List[QtWidgets.QLineEdit]:
+        def mk_row9(name: str, with_clear_button: bool=False) -> List[QtWidgets.QLineEdit]:
             row = QtWidgets.QHBoxLayout()
             title = QtWidgets.QLabel(name); title.setFixedWidth(80)
             row.addWidget(title)
@@ -1453,22 +1420,132 @@ class MainWindow(QtWidgets.QMainWindow):
             for _ in range(9):
                 e = QtWidgets.QLineEdit()
                 e.setFixedWidth(40)
-                #e.setReadOnly(True)
                 edits.append(e)
                 row.addWidget(e)
             row.addStretch()
+            if with_clear_button:
+                self.btn_clear_rrr_data = QtWidgets.QPushButton("清除RECD/REDD/REUR数据")
+                self.btn_clear_rrr_data.setFixedWidth(160)
+                row.addWidget(self.btn_clear_rrr_data, 0, QtCore.Qt.AlignmentFlag.AlignRight)
+                self.btn_clear_rrr_data.clicked.connect(self.on_clear_rrr_data)
             v_rrr.addLayout(row)
             return edits
 
         self.RECDh_edits9 = mk_row9("RECDh9")
         self.RECDt_edits9 = mk_row9("RECDt9")
         self.REDD_edits9 = mk_row9("REDD9")
-        self.REUR_edits9 = mk_row9("REUR9")
+        self.REUR_edits9 = mk_row9("REUR9", with_clear_button=True)
+        
+        # 参考数据与修正
+        gb_ref = QtWidgets.QGroupBox("参考数据与修正")
+        left.addWidget(gb_ref)
+        v_ref = QtWidgets.QVBoxLayout(gb_ref)
 
-        btn_get_19.clicked.connect(self.on_fetch_rrr_19)
-        btn_get_9.clicked.connect(self.on_fetch_rrr_9)
-        btn_set_19.clicked.connect(self.on_set_rrr_19)
-        btn_set_9.clicked.connect(self.on_set_rrr_9)
+        # 行1：通道频率(Hz) 19点
+        hdr_ref19 = QtWidgets.QHBoxLayout()
+        hdr_ref19.addWidget(QtWidgets.QLabel("通道频率(Hz)   "))
+        for f in FREQS_19:
+            lab = QtWidgets.QLabel(str(f))
+            lab.setFixedWidth(40)
+            hdr_ref19.addWidget(lab)
+        hdr_ref19.addStretch()
+        v_ref.addLayout(hdr_ref19)
+
+        # 通用构造 19点可编辑行：返回 (edits, tail_layout)
+        # tail_layout 是一个插在最后一个文本框之后、stretch 之前的小布局，你可以往里 addWidget 任意 QLabel
+        def mk_ref_row19(name: str, arr: List[float]) -> tuple[List[QtWidgets.QLineEdit], QtWidgets.QHBoxLayout]:
+            row = QtWidgets.QHBoxLayout()
+            title = QtWidgets.QLabel(name); title.setFixedWidth(80)
+            row.addWidget(title)
+            edits: List[QtWidgets.QLineEdit] = []
+            for i in range(19):
+                e = QtWidgets.QLineEdit()
+                e.setFixedWidth(40)
+                e.setText(f"{float(arr[i]) if i < len(arr) else 0.0:.1f}")
+                edits.append(e)
+                row.addWidget(e)
+
+            # 尾部挂点（放在最后一个文本框后、stretch 前）
+            tail_host = QtWidgets.QWidget()
+            tail_layout = QtWidgets.QHBoxLayout(tail_host)
+            tail_layout.setContentsMargins(0, 0, 0, 0)
+            tail_layout.setSpacing(4)
+            row.addWidget(tail_host)
+
+            row.addStretch()
+            v_ref.addLayout(row)
+            return edits, tail_layout
+
+
+        # 19点行2-7：MLE/MAF/BWC/ESCD/Tubing/Ventout
+        self.MLE_edits19, self.MLE_tail19 = mk_ref_row19("MLE", self.cfg.MLE or [])
+        self.MAF_edits19, self.MAF_tail19 = mk_ref_row19("MAF", self.cfg.MAF or [])
+        self.BWC_edits19, self.BWC_tail19 = mk_ref_row19("BWC", self.cfg.BWC or [])
+        self.ESCD_edits19, self.ESCD_tail19 = mk_ref_row19("ESCD", self.cfg.ESCD or [])
+        self.Tubing_edits19, self.Tubing_tail19 = mk_ref_row19("Tubing", self.cfg.Tubing or [])
+        self.Ventout_edits19, self.Ventout_tail19 = mk_ref_row19("Ventout", self.cfg.Ventout or [])
+
+        # 在每行最后一个文本框后追加自定义 Label（你可替换/删除这些示例）
+        self.MLE_tail19.addWidget(QtWidgets.QLabel("Microphone Location Effects data @ 1/3 octaves"))
+        self.MAF_tail19.addWidget(QtWidgets.QLabel("Minimum Audible Field @ 1/3 octaves"))
+        self.BWC_tail19.addWidget(QtWidgets.QLabel("Bandwidth Correction @ 1/3 octaves"))
+        self.ESCD_tail19.addWidget(QtWidgets.QLabel("Ear Simulator to Coupler Difference data @ 1/3 octaves"))
+        self.Tubing_tail19.addWidget(QtWidgets.QLabel("Tubing corrections @ 1/3 octaves"))
+        self.Ventout_tail19.addWidget(QtWidgets.QLabel("Vent corrections @ 1/3 octaves"))
+
+        # 行8：9点频率表头
+        hdr_ref9 = QtWidgets.QHBoxLayout()
+        hdr_ref9.addWidget(QtWidgets.QLabel("测听频率(Hz)   "))
+        for f in FREQS_9:
+            lab = QtWidgets.QLabel(str(f))
+            lab.setFixedWidth(40)
+            hdr_ref9.addWidget(lab)
+        hdr_ref9.addStretch()
+        v_ref.addLayout(hdr_ref9)
+
+        # 通用构造 9点可编辑行：返回 (edits, tail_layout)
+        # with_clear_button=True 的行，清除按钮会固定在最右侧；你追加的 label 会在文本框之后、清除按钮之前
+        def mk_ref_row9(name: str, arr: List[float], with_clear_button: bool=False) -> tuple[List[QtWidgets.QLineEdit], QtWidgets.QHBoxLayout]:
+            row = QtWidgets.QHBoxLayout()
+            title = QtWidgets.QLabel(name); title.setFixedWidth(80)
+            row.addWidget(title)
+            edits: List[QtWidgets.QLineEdit] = []
+            for i in range(9):
+                e = QtWidgets.QLineEdit()
+                e.setFixedWidth(40)
+                v = 0.0
+                try:
+                    v = float(arr[i])
+                except Exception:
+                    v = 0.0
+                e.setText(f"{v:.1f}")
+                edits.append(e)
+                row.addWidget(e)
+
+            # 尾部挂点（放在最后一个文本框后、stretch 前）
+            tail_host = QtWidgets.QWidget()
+            tail_layout = QtWidgets.QHBoxLayout(tail_host)
+            tail_layout.setContentsMargins(0, 0, 0, 0)
+            tail_layout.setSpacing(4)
+            row.addWidget(tail_host)
+
+            row.addStretch()
+            if with_clear_button:
+                self.btn_clear_ref_data = QtWidgets.QPushButton("清除参考数据与修正")
+                self.btn_clear_ref_data.setFixedWidth(160)
+                row.addWidget(self.btn_clear_ref_data, 0, QtCore.Qt.AlignmentFlag.AlignRight)
+                self.btn_clear_ref_data.clicked.connect(self.on_clear_ref_data)
+            v_ref.addLayout(row)
+            return edits, tail_layout
+
+
+        # 行9-10：Tubing9 / Ventout9（Ventout9 行末加清除按钮）
+        self.Tubing9_edits9, self.Tubing9_tail9 = mk_ref_row9("Tubing9", self.cfg.Tubing9 or [])
+        self.Ventout9_edits9, self.Ventout9_tail9 = mk_ref_row9("Ventout9", self.cfg.Ventout9 or [], with_clear_button=True)
+
+        # 在每行最后一个文本框后追加自定义 Label（你可替换/删除这些示例）
+        self.Tubing9_tail9.addWidget(QtWidgets.QLabel("Tubing corrections @ standard NAL-NL2 frequencies"))
+        self.Ventout9_tail9.addWidget(QtWidgets.QLabel("Vent corrections @ standard NAL-NL2 frequencies"))
 
         # 右侧
         right_container = QtWidgets.QWidget()
@@ -1490,6 +1567,35 @@ class MainWindow(QtWidgets.QMainWindow):
         v_apply = QtWidgets.QVBoxLayout(gb_apply)
         btn_apply = QtWidgets.QPushButton("Step 1-8 Initialize")
         v_apply.addWidget(btn_apply)
+        
+        # 把左侧的 RRR 四个按钮挪到右侧（两行）
+        row_r1 = QtWidgets.QHBoxLayout()
+        self.btn_get_rrr_19 = QtWidgets.QPushButton("获取RECD/REDD/REUR")
+        self.btn_get_rrr_9  = QtWidgets.QPushButton("获取RECD9/REDD9/REUR9")
+        row_r1.addWidget(self.btn_get_rrr_19)
+        row_r1.addWidget(self.btn_get_rrr_9)
+        row_r1.addStretch()
+        v_apply.addLayout(row_r1)
+
+        row_r2 = QtWidgets.QHBoxLayout()
+        self.btn_set_rrr_19 = QtWidgets.QPushButton("设置RECD/REDD/REUR")
+        self.btn_set_rrr_9  = QtWidgets.QPushButton("设置RECD9/REDD9/REUR9")
+        row_r2.addWidget(self.btn_set_rrr_19)
+        row_r2.addWidget(self.btn_set_rrr_9)
+        row_r2.addStretch()
+        v_apply.addLayout(row_r2)
+
+        # 新增：获取参考数据与修正（宽度与 Step 按钮相同）
+        self.btn_fetch_ref = QtWidgets.QPushButton("获取参考数据与修正")
+        #self.btn_fetch_ref.setFixedWidth(btn_apply.sizeHint().width())
+        v_apply.addWidget(self.btn_fetch_ref)
+
+        # 右侧按钮事件
+        self.btn_get_rrr_19.clicked.connect(self.on_fetch_rrr_19)
+        self.btn_get_rrr_9.clicked.connect(self.on_fetch_rrr_9)
+        self.btn_set_rrr_19.clicked.connect(self.on_set_rrr_19)
+        self.btn_set_rrr_9.clicked.connect(self.on_set_rrr_9)
+        self.btn_fetch_ref.clicked.connect(self.on_fetch_ref_data)
 
         # 日志 + 清除
         self.apply_log = QtWidgets.QTextEdit()
@@ -1505,6 +1611,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # 初始化数据显示
         self.update_rrr_entries_from_cfg()
+        
+        if hasattr(self, "update_ref_entries_from_cfg"):
+            self.update_ref_entries_from_cfg()
 
         # 绑定更改 -> 自动保存
         for cb, setter in [
@@ -1536,6 +1645,115 @@ class MainWindow(QtWidgets.QMainWindow):
         self.WBCT_edit.editingFinished.connect(self.autosave_config)
         for e in self.AC_edits + self.BC_edits + self.ACother_edits:
             e.editingFinished.connect(self.autosave_config)
+
+    def on_clear_rrr_data(self):
+        # 左侧“RECD/REDD/REUR读写与显示”区域 内全部文本框清0，并同步到 config
+        self.cfg.RECDh = [0.0]*19
+        self.cfg.RECDt = [0.0]*19
+        self.cfg.REDD  = [0.0]*19
+        self.cfg.REUR  = [0.0]*19
+        self.cfg.RECDh9 = [0.0]*9
+        self.cfg.RECDt9 = [0.0]*9
+        self.cfg.REDD9  = [0.0]*9
+        self.cfg.REUR9  = [0.0]*9
+        # 刷新文本框
+        self.update_rrr_entries_from_cfg()
+        self.save_config(self.config_path)
+
+    def on_clear_ref_data(self):
+        # 参考数据与修正：所有文本框清0并同步到 config
+        self.cfg.MLE = [0.0]*19
+        self.cfg.MAF = [0.0]*19
+        self.cfg.BWC = [0.0]*19
+        self.cfg.ESCD = [0.0]*19
+        self.cfg.Tubing = [0.0]*19
+        self.cfg.Ventout = [0.0]*19
+        self.cfg.Tubing9 = [0.0]*9
+        self.cfg.Ventout9 = [0.0]*9
+        # 刷新文本框
+        self.update_ref_entries_from_cfg()
+        self.save_config(self.config_path)
+
+    def update_ref_entries_from_cfg(self):
+        # 辅助：把数组写入一组编辑框
+        def fill(edits: List[QtWidgets.QLineEdit], data: List[float], n: int):
+            for i in range(n):
+                try:
+                    v = float(data[i])
+                    edits[i].setText(f"{v:.1f}")
+                except Exception:
+                    edits[i].setText("")
+        # 19点
+        if hasattr(self, "MLE_edits19"):
+            fill(self.MLE_edits19, self.cfg.MLE or [], 19)
+            fill(self.MAF_edits19, self.cfg.MAF or [], 19)
+            fill(self.BWC_edits19, self.cfg.BWC or [], 19)
+            fill(self.ESCD_edits19, self.cfg.ESCD or [], 19)
+            fill(self.Tubing_edits19, self.cfg.Tubing or [], 19)
+            fill(self.Ventout_edits19, self.cfg.Ventout or [], 19)
+        # 9点
+        if hasattr(self, "Tubing9_edits9"):
+            fill(self.Tubing9_edits9, self.cfg.Tubing9 or [], 9)
+            fill(self.Ventout9_edits9, self.cfg.Ventout9 or [], 9)
+        self.save_config(self.config_path)
+
+    def on_fetch_ref_data(self):
+        if not self.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        c = self.cfg
+
+        def send(function, params):
+            req = {"function": function, "input_parameters": params}
+            prev = dict(req); prev["sequence_num"] = self.client.sequence_num
+            self.logReady.emit("发送:\n" + json.dumps(prev, ensure_ascii=False, indent=2))
+            resp = self.client.post_json(req)
+            self.logReady.emit("响应:\n" + json.dumps(resp, ensure_ascii=False, indent=2))
+            self.logReady.emit("--------------------------------------------------------------------\n")
+            return resp
+
+        def worker():
+            try:
+                # 26 - GetMLE -> MLE
+                resp = send("GetMLE", {"aidType": c.aidType, "direction": c.direction, "mic": c.mic})
+                outp = (resp or {}).get("output_parameters", {}) or {}
+                if "MLE" in outp and isinstance(outp["MLE"], list):
+                    self.cfg.MLE = outp["MLE"]
+
+                # 27 - ReturnValues_NL2 -> MAF/BWC/ESCD
+                resp = send("ReturnValues_NL2", {})
+                outp = (resp or {}).get("output_parameters", {}) or {}
+                if "MAF" in outp and isinstance(outp["MAF"], list): self.cfg.MAF = outp["MAF"]
+                if "BWC" in outp and isinstance(outp["BWC"], list): self.cfg.BWC = outp["BWC"]
+                if "ESCD" in outp and isinstance(outp["ESCD"], list): self.cfg.ESCD = outp["ESCD"]
+
+                # 28 - GetTubing_NL2 -> Tubing
+                resp = send("GetTubing_NL2", {"tubing": c.tubing})
+                outp = (resp or {}).get("output_parameters", {}) or {}
+                if "Tubing" in outp and isinstance(outp["Tubing"], list): self.cfg.Tubing = outp["Tubing"]
+
+                # 30 - GetVentOut_NL2 -> Ventout
+                resp = send("GetVentOut_NL2", {"vent": c.vent})
+                outp = (resp or {}).get("output_parameters", {}) or {}
+                if "Ventout" in outp and isinstance(outp["Ventout"], list): self.cfg.Ventout = outp["Ventout"]
+
+                # 29 - GetTubing9_NL2 -> Tubing9
+                resp = send("GetTubing9_NL2", {"tubing": c.tubing})
+                outp = (resp or {}).get("output_parameters", {}) or {}
+                if "Tubing9" in outp and isinstance(outp["Tubing9"], list): self.cfg.Tubing9 = outp["Tubing9"]
+
+                # 31 - GetVentOut9_NL2 -> Ventout9
+                resp = send("GetVentOut9_NL2", {"vent": c.vent})
+                outp = (resp or {}).get("output_parameters", {}) or {}
+                if "Ventout9" in outp and isinstance(outp["Ventout9"], list): self.cfg.Ventout9 = outp["Ventout9"]
+
+                # 刷新左侧参考数据文本框并保存
+                self.update_ref_entries_from_cfg()
+                self.save_config(self.config_path)
+            except Exception as e:
+                self.errorReady.emit(f"获取参考数据与修正失败: {e}")
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _apply_strict_focus_behavior(self):
         # 设置：只有点击才获得焦点；未聚焦时把滚轮事件转发给最近的滚动区域
@@ -1884,25 +2102,25 @@ class MainWindow(QtWidgets.QMainWindow):
             elif fn == "GetREURindiv":
                 upd("REUR", "REUR")
             elif fn == "GetREURindiv9":
-                if "REUR" in outp and outp["REUR"] is not None:
-                    self.cfg.REUR9 = outp["REUR"]; changed = True
+                if "REUR9" in outp and outp["REUR9"] is not None:
+                    self.cfg.REUR9 = outp["REUR9"]; changed = True
             elif fn == "GetREDDindiv":
                 upd("REDD", "REDD")
             elif fn == "GetREDDindiv9":
-                if "REDD" in outp and outp["REDD"] is not None:
-                    self.cfg.REDD9 = outp["REDD"]; changed = True
+                if "REDD9" in outp and outp["REDD9"] is not None:
+                    self.cfg.REDD9 = outp["REDD9"]; changed = True
             elif fn == "GetRECDh_indiv_NL2":
                 if "RECDh" in outp and outp["RECDh"] is not None:
                     self.cfg.RECDh = outp["RECDh"]; changed = True
             elif fn == "GetRECDh_indiv9_NL2":
-                if "RECDh" in outp and outp["RECDh"] is not None:
-                    self.cfg.RECDh9 = outp["RECDh"]; changed = True
+                if "RECDh9" in outp and outp["RECDh9"] is not None:
+                    self.cfg.RECDh9 = outp["RECDh9"]; changed = True
             elif fn == "GetRECDt_indiv_NL2":
                 if "RECDt" in outp and outp["RECDt"] is not None:
                     self.cfg.RECDt = outp["RECDt"]; changed = True
             elif fn == "GetRECDt_indiv9_NL2":
-                if "RECDt" in outp and outp["RECDt"] is not None:
-                    self.cfg.RECDt9 = outp["RECDt"]; changed = True
+                if "RECDt9" in outp and outp["RECDt9"] is not None:
+                    self.cfg.RECDt9 = outp["RECDt9"]; changed = True
 
             if changed:
                 self.save_config(self.config_path)
@@ -2214,6 +2432,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refresh_outputs_view()
         self.autosave_config()
         self.update_rrr_entries_from_cfg()
+        
+        if hasattr(self, "update_ref_entries_from_cfg"):
+            self.update_ref_entries_from_cfg()
         
         if hasattr(self, "gr_tab"):
             self.gr_tab._load_from_cfg()
