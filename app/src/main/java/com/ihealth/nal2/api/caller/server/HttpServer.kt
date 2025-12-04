@@ -273,8 +273,8 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     }
                     onLog?.invoke("DEBUG", "🔧 使用CFArray: $cfArrayStr (来源: ${if (params.has("CFArray")) "参数" else if (globalCFArray.isNotEmpty()) "全局变量" else "空"})")
 
-                    val centreF = nal2Manager.getCenterFrequencies(channels, cfArray)
-                    result.add("centreF", intArrayToJsonArray(centreF))
+                    val centerF = nal2Manager.getCenterFrequencies(channels, cfArray)
+                    result.add("centerF", intArrayToJsonArray(centerF))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: CenterFrequencies完成")
                 }
                 
