@@ -235,12 +235,38 @@ public class Nal2Manager {
     public double[] getRECDhIndiv(int RECDmeasType, int dateOfBirth, int aidType, int tubing, int vent, int coupler,
             int fittingDepth) {
         try {
+            // 记录输入参数
+            sendLog(TAG, "DEBUG", "getRECDhIndiv input: RECDmeasType=" + RECDmeasType +
+                    ", dateOfBirth=" + dateOfBirth + ", aidType=" + aidType +
+                    ", tubing=" + tubing + ", vent=" + vent +
+                    ", coupler=" + coupler + ", fittingDepth=" + fittingDepth);
+
             double[] recdh = new double[19];
             // API文档: GetRECDh_indiv_NL2(RECDh[19], RECDmeasType, dateOfBirth, aidType,
             // tubing, vent, coupler, fittingDepth)
             OutputResult result = NativeManager.getInstance(context).GetRECDh_indiv_NL2(recdh, RECDmeasType,
                     dateOfBirth, aidType, tubing, vent, coupler, fittingDepth);
-            return getOutputData(result, recdh);
+
+            // 记录 result 对象 (检查是否为null)
+            if (result != null) {
+                sendLog(TAG, "DEBUG", "getRECDhIndiv result: " + result.toString());
+            } else {
+                sendLog(TAG, "WARN", "getRECDhIndiv result is null");
+            }
+
+            double[] output = getOutputData(result, recdh);
+
+            // 记录输出结果
+            StringBuilder logBuilder = new StringBuilder("getRECDhIndiv output: [");
+            for (int i = 0; i < output.length; i++) {
+                if (i > 0)
+                    logBuilder.append(", ");
+                logBuilder.append(output[i]);
+            }
+            logBuilder.append("]");
+            sendLog(TAG, "DEBUG", logBuilder.toString());
+
+            return output;
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取RECDh_indiv失败: " + e.getMessage());
             return new double[19];
@@ -250,14 +276,63 @@ public class Nal2Manager {
     public double[] getRECDhIndiv9(int RECDmeasType, int dateOfBirth, int aidType, int tubing, int vent, int coupler,
             int fittingDepth) {
         try {
+            // 记录输入参数
+            sendLog(TAG, "DEBUG", "getRECDhIndiv9 input: RECDmeasType=" + RECDmeasType +
+                    ", dateOfBirth=" + dateOfBirth + ", aidType=" + aidType +
+                    ", tubing=" + tubing + ", vent=" + vent +
+                    ", coupler=" + coupler + ", fittingDepth=" + fittingDepth);
+
             double[] recdh = new double[9];
+
+            // 记录调用前的数组状态
+            StringBuilder beforeLog = new StringBuilder("getRECDhIndiv9 array before SDK call: [");
+            for (int i = 0; i < recdh.length; i++) {
+                if (i > 0)
+                    beforeLog.append(", ");
+                beforeLog.append(recdh[i]);
+            }
+            beforeLog.append("]");
+            sendLog(TAG, "DEBUG", beforeLog.toString());
+
             // 根据SDK文档: GetRECDh_indiv9_NL2(RECDh[9], RECDmeasType, dateOfBirth, aidType,
             // tubing, vent, coupler, fittingDepth)
             OutputResult result = NativeManager.getInstance(context).GetRECDh_indiv9_NL2(recdh, RECDmeasType,
                     dateOfBirth, aidType, tubing, vent, coupler, fittingDepth);
-            return getOutputData(result, recdh);
+
+            // 记录调用后的数组状态
+            StringBuilder afterLog = new StringBuilder("getRECDhIndiv9 array after SDK call: [");
+            for (int i = 0; i < recdh.length; i++) {
+                if (i > 0)
+                    afterLog.append(", ");
+                afterLog.append(recdh[i]);
+            }
+            afterLog.append("]");
+            sendLog(TAG, "DEBUG", afterLog.toString());
+
+            // 记录 result 对象 (检查是否为null)
+            if (result != null) {
+                sendLog(TAG, "DEBUG", "getRECDhIndiv9 result: " + result.toString());
+                // 如果result不为null，从result中获取数据
+                double[] output = getOutputData(result, recdh);
+
+                // 记录输出结果
+                StringBuilder logBuilder = new StringBuilder("getRECDhIndiv9 output (from result): [");
+                for (int i = 0; i < output.length; i++) {
+                    if (i > 0)
+                        logBuilder.append(", ");
+                    logBuilder.append(output[i]);
+                }
+                logBuilder.append("]");
+                sendLog(TAG, "DEBUG", logBuilder.toString());
+
+                return output;
+            } else {
+                sendLog(TAG, "WARN", "getRECDhIndiv9 result is null, using modified array directly");
+                return recdh;
+            }
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "获取RECDh_indiv9失败: " + e.getMessage());
+            e.printStackTrace();
             return new double[9];
         }
     }
@@ -544,51 +619,52 @@ public class Nal2Manager {
     public double[] getCompressionRatio(double[] cr, int channels, int[] centreFreq, double[] ac, double[] bc,
             int direction, int mic, int limiting, double[] acOther, int noOfAids) {
         try {
-            // 详细的参数校验 - centreFreq 长度应该是 channels + 1
-            int expectedLength = channels + 1;
-            if (centreFreq == null || centreFreq.length != expectedLength) {
-                sendLog(TAG, "ERROR",
-                        "Invalid centreFreq array: expected " + expectedLength + " elements (channels + 1), got " +
-                                (centreFreq == null ? "null" : centreFreq.length));
-                throw new IllegalArgumentException(
-                        "centreFreq array size must equal channels + 1 (" + expectedLength + ")");
+            // 打印调试信息 - 包括 centreFreq 的实际值
+            StringBuilder centreFreqLog = new StringBuilder("centreFreq=[");
+            for (int i = 0; i < centreFreq.length; i++) {
+                if (i > 0)
+                    centreFreqLog.append(", ");
+                centreFreqLog.append(centreFreq[i]);
             }
+            centreFreqLog.append("]");
 
-            if (ac == null || ac.length != 9) {
-                sendLog(TAG, "ERROR", "Invalid AC array: expected 9 elements, got " +
-                        (ac == null ? "null" : ac.length));
-                throw new IllegalArgumentException("AC array must have 9 elements (standard frequencies)");
-            }
-
-            if (bc == null || bc.length != 9) {
-                sendLog(TAG, "ERROR", "Invalid BC array: expected 9 elements, got " +
-                        (bc == null ? "null" : bc.length));
-                throw new IllegalArgumentException("BC array must have 9 elements (standard frequencies)");
-            }
-
-            if (acOther == null || acOther.length != 9) {
-                sendLog(TAG, "ERROR", "Invalid ACother array: expected 9 elements, got " +
-                        (acOther == null ? "null" : acOther.length));
-                throw new IllegalArgumentException("ACother array must have 9 elements (standard frequencies)");
-            }
-
-            // 打印调试信息
-            sendLog(TAG, "DEBUG", "CompressionRatio_NL2: channels=" + channels +
+            sendLog(TAG, "DEBUG", "CompressionRatio_NL2 调用参数: channels=" + channels +
                     ", centreFreq length=" + centreFreq.length +
+                    ", " + centreFreqLog.toString() +
                     ", AC length=" + ac.length +
                     ", BC length=" + bc.length +
                     ", ACother length=" + acOther.length +
-                    ", CR length=" + cr.length);
+                    ", CR length=" + cr.length +
+                    ", direction=" + direction +
+                    ", mic=" + mic +
+                    ", limiting=" + limiting +
+                    ", noOfAids=" + noOfAids);
 
             // centreFreq本身就是int[]数组，直接传递
             OutputResult result = NativeManager.getInstance(context).CompressionRatio_NL2(cr, channels, centreFreq,
                     ac, bc, direction, mic, limiting, acOther, noOfAids);
-            return getOutputData(result, cr);
+
+            double[] output = getOutputData(result, cr);
+
+            // 打印输出结果
+            StringBuilder crLog = new StringBuilder("CompressionRatio_NL2 输出: CR=[");
+            for (int i = 0; i < Math.min(output.length, 5); i++) {
+                if (i > 0)
+                    crLog.append(", ");
+                crLog.append(output[i]);
+            }
+            if (output.length > 5) {
+                crLog.append(", ... (共" + output.length + "个)");
+            }
+            crLog.append("]");
+            sendLog(TAG, "DEBUG", crLog.toString());
+
+            return output;
         } catch (IllegalArgumentException e) {
             sendLog(TAG, "ERROR", "参数验证失败: " + e.getMessage(), e);
             throw e; // 重新抛出，让上层处理
         } catch (Exception e) {
-            sendLog(TAG, "ERROR", "获取压缩比失败: " + e.getMessage());
+            sendLog(TAG, "ERROR", "获取压缩比失败: " + e.getMessage(), e);
             e.printStackTrace(); // 打印完整堆栈
             return cr;
         }

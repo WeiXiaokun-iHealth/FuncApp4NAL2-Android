@@ -356,15 +356,6 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val bc = jsonArrayToDoubleArray(params.getAsJsonArray("BC"))
                     val acOther = jsonArrayToDoubleArray(params.getAsJsonArray("ACother"))
                     
-                    // 验证 centreFreq 数组长度必须等于 channels + 1
-                    val expectedLength = channels + 1
-                    if (centreFreq.size != expectedLength) {
-                        val errorMsg = "centreFreq 数组长度错误: 期望 $expectedLength (channels + 1), 实际 ${centreFreq.size}"
-                        result.addProperty("error", errorMsg)
-                        onLog?.invoke("ERROR", "❌ $errorMsg")
-                        return@processNal2Function result
-                    }
-                    
                     val crResult = nal2Manager.getCompressionRatio(
                         cr,
                         channels,
