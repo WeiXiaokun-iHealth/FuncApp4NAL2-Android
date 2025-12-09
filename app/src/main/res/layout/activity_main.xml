@@ -149,7 +149,7 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <!-- 标题和清空按钮 -->
+                <!-- 标题和按钮 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -165,6 +165,19 @@
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#333333"/>
+
+                    <Button
+                        android:id="@+id/btnRefreshGlobalVars"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🔄 刷新"
+                        android:textSize="11sp"
+                        android:minHeight="0dp"
+                        android:paddingVertical="4dp"
+                        android:paddingHorizontal="8dp"
+                        android:backgroundTint="#007AFF"
+                        android:layout_marginEnd="4dp"
+                        style="@style/Widget.Material3.Button"/>
 
                     <Button
                         android:id="@+id/btnClearAllGlobalVars"

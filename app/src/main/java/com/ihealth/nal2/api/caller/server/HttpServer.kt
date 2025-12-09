@@ -134,6 +134,9 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
             // 调用 NAL2 函数
             val result = processNal2Function(functionName, inputParams)
             
+            // 所有函数调用后自动刷新全局变量
+            autoRefreshGlobalVariables()
+            
             // 构建响应
             val response = JsonObject().apply {
                 addProperty("sequence_num", sequenceNum)
@@ -237,13 +240,22 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val ac = jsonArrayToDoubleArray(params.getAsJsonArray("AC"))
                     val bc = jsonArrayToDoubleArray(params.getAsJsonArray("BC"))
                     
+                    // 创建临时数组传给 SDK
                     val cfArr = DoubleArray(19)
                     val freqInCh = IntArray(19)
+                    
+                    onLog?.invoke("DEBUG", "🔧 CFArray: 创建临时数组传给 SDK")
+                    onLog?.invoke("DEBUG", "🔧 FreqInCh: 创建临时数组传给 SDK")
+                    
+                    // SDK 调用，返回结果从 OutputResult 中获取
                     val crossResult = nal2Manager.getCrossOverFrequencies(cfArr, channels, ac, bc, freqInCh)
                     
-                    // 自动保存到全局变量
+                    // 保存 SDK 返回的结果到全局变量
                     GlobalVariables.setCFArray(crossResult.CFArray)
                     GlobalVariables.setFreqInCh(crossResult.FreqInCh)
+                    
+                    onLog?.invoke("DEBUG", "🔧 SDK返回 CFArray: ${crossResult.CFArray.take(3).joinToString(", ")}")
+                    onLog?.invoke("DEBUG", "🔧 SDK返回 FreqInCh: ${crossResult.FreqInCh.take(3).joinToString(", ")}")
                     
                     result.add("CFArray", doubleArrayToJsonArray(crossResult.CFArray))
                     result.add("FreqInCh", intArrayToJsonArray(crossResult.FreqInCh))
@@ -279,7 +291,9 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 }
                 
                 "CompressionThreshold_NL2" -> {
+                    // 创建临时数组传给 SDK
                     val ct = DoubleArray(19)
+                    
                     val bandwidth = params.get("bandWidth").asInt
                     val selection = params.get("selection")?.asInt ?: 0
                     val WBCT = params.get("WBCT")?.asInt ?: 0
@@ -288,7 +302,9 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val mic = params.get("mic")?.asInt ?: 0
                     val calcCh = jsonArrayToIntArray(params.getAsJsonArray("calcCh"))
                     
-                    onLog?.invoke("DEBUG", "🔧 调用前CT: ${ct.take(3).joinToString(", ")}")
+                    onLog?.invoke("DEBUG", "🔧 CT: 创建临时数组传给 SDK")
+                    
+                    // SDK 调用，返回结果从 OutputResult 中获取
                     val ctResult = nal2Manager.setCompressionThreshold(
                         ct,
                         bandwidth,
@@ -300,16 +316,10 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                         calcCh
                     )
                     
-                    // 打印调用后的 CT 值
-                    val ctStr = if (ctResult.size > 3) {
-                        "[${ctResult[0]}, ${ctResult[1]}, ${ctResult[2]}, ... (${ctResult.size}项)]"
-                    } else {
-                        ctResult.joinToString(", ", "[", "]")
-                    }
-                    onLog?.invoke("DEBUG", "🔧 调用后CT: $ctStr")
-                    
-                    // 自动保存到全局变量
+                    // 保存 SDK 返回的结果到全局变量
                     GlobalVariables.setCT(ctResult)
+                    
+                    onLog?.invoke("DEBUG", "🔧 SDK返回 CT: ${ctResult.take(3).joinToString(", ")}")
                     
                     result.add("CT", doubleArrayToJsonArray(ctResult))
                     onLog?.invoke("SUCCESS", "3️⃣ NAL2输出: CompressionThreshold完成 (已保存到全局变量)")
@@ -681,8 +691,27 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                 "AidedThreshold_NL2" -> {
                     val ac = jsonArrayToDoubleArray(params.getAsJsonArray("AC"))
                     val bc = jsonArrayToDoubleArray(params.getAsJsonArray("BC"))
-                    val ct = jsonArrayToDoubleArray(params.getAsJsonArray("CT"))
                     val acOther = jsonArrayToDoubleArray(params.getAsJsonArray("ACother"))
+                    
+                    // 获取全局 CT 或使用参数中的 CT
+                    val globalCT = GlobalVariables.getCT()
+                    val ct = if (params.has("CT")) {
+                        jsonArrayToDoubleArray(params.getAsJsonArray("CT"))
+                    } else if (globalCT.isNotEmpty()) {
+                        globalCT
+                    } else {
+                        DoubleArray(19)  // 默认空数组
+                    }
+                    
+                    // 打印使用的 CT
+                    val ctStr = if (ct.size > 3) {
+                        "[${ct[0]}, ${ct[1]}, ${ct[2]}, ... (${ct.size}项)]"
+                    } else if (ct.isNotEmpty()) {
+                        ct.joinToString(", ", "[", "]")
+                    } else {
+                        "[]"
+                    }
+                    onLog?.invoke("DEBUG", "🔧 使用CT: $ctStr (来源: ${if (params.has("CT")) "参数" else if (globalCT.isNotEmpty()) "全局变量" else "空"})")
                     
                     val at = nal2Manager.getAidedThreshold(
                         ac,
@@ -917,5 +946,42 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
         val jsonArray = com.google.gson.JsonArray()
         array.forEach { jsonArray.add(it) }
         return jsonArray
+    }
+    
+    /**
+     * 自动刷新全局变量
+     * 在每个 API 函数调用后自动从 OutputResult 刷新 CFArray、FreqInCh 和 CT
+     */
+    private fun autoRefreshGlobalVariables() {
+        try {
+            var refreshed = false
+            
+            // 刷新 CrossOverFrequencies
+            if (nal2Manager.hasCrossOverResult()) {
+                val refreshResult = nal2Manager.refreshCrossOverFrequencies()
+                if (refreshResult != null) {
+                    GlobalVariables.setCFArray(refreshResult.CFArray)
+                    GlobalVariables.setFreqInCh(refreshResult.FreqInCh)
+                    onLog?.invoke("DEBUG", "🔄 自动刷新: CFArray 和 FreqInCh 已更新")
+                    refreshed = true
+                }
+            }
+            
+            // 刷新 CompressionThreshold
+            if (nal2Manager.hasCompressionThresholdResult()) {
+                val refreshCT = nal2Manager.refreshCompressionThreshold()
+                if (refreshCT != null) {
+                    GlobalVariables.setCT(refreshCT)
+                    onLog?.invoke("DEBUG", "🔄 自动刷新: CT 已更新")
+                    refreshed = true
+                }
+            }
+            
+            if (refreshed) {
+                onLog?.invoke("INFO", "✅ 全局变量自动刷新完成")
+            }
+        } catch (e: Exception) {
+            onLog?.invoke("ERROR", "自动刷新全局变量失败: ${e.message}")
+        }
     }
 }

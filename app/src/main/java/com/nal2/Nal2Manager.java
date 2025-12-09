@@ -15,6 +15,12 @@ public class Nal2Manager {
     private Context context;
     private static LogCallback logCallback;
 
+    // 存储 CrossOverFrequencies_NL2 的 OutputResult
+    private static OutputResult crossOverResult = null;
+
+    // 存储 CompressionThreshold_NL2 的 OutputResult
+    private static OutputResult compressionThresholdResult = null;
+
     // 日志回调接口
     public interface LogCallback {
         void onLog(String tag, String level, String message);
@@ -146,6 +152,10 @@ public class Nal2Manager {
             OutputResult result = NativeManager.getInstance(context).CrossOverFrequencies_NL2(cfArr, channels, acDouble,
                     bcDouble, freqInCh);
 
+            // 保存 OutputResult 到全局对象
+            crossOverResult = result;
+            sendLog(TAG, "INFO", "CrossOverFrequencies_NL2 OutputResult 已保存到全局对象");
+
             // 根据PDF映射表：CFArray[] -> getOutput1(), FreqInCh[] -> getOutput2b()
             double[] cfArray = getOutputData(result, cfArr);
             int[] outputFreqInCh = getOutput2b(result, freqInCh);
@@ -186,6 +196,11 @@ public class Nal2Manager {
             OutputResult result = NativeManager.getInstance(context).CompressionThreshold_NL2(ct, bandWidth, selection,
                     WBCT, haType, direction,
                     mic, calcChArray);
+
+            // 保存 OutputResult 到全局对象
+            compressionThresholdResult = result;
+            sendLog(TAG, "INFO", "CompressionThreshold_NL2 OutputResult 已保存到全局对象");
+
             return getOutputData(result, ct);
         } catch (Exception e) {
             sendLog(TAG, "ERROR", "设置压缩阈值失败: " + e.getMessage());
@@ -1001,5 +1016,120 @@ public class Nal2Manager {
             sendLog(TAG, "ERROR", "获取SII失败: " + e.getMessage());
             return 0.0;
         }
+    }
+
+    /**
+     * 从保存的 crossOverResult 中刷新获取 CFArray 和 FreqInCh
+     * 用于在页面上点击刷新按钮时更新全局变量
+     * 
+     * @return CrossOverFrequenciesResult 包含 CFArray 和 FreqInCh，如果没有保存的结果则返回 null
+     */
+    public CrossOverFrequenciesResult refreshCrossOverFrequencies() {
+        try {
+            if (crossOverResult == null) {
+                sendLog(TAG, "WARN", "没有保存的 CrossOverFrequencies OutputResult，请先调用 getCrossOverFrequencies");
+                return null;
+            }
+
+            sendLog(TAG, "INFO", "从保存的 OutputResult 刷新 CFArray 和 FreqInCh");
+
+            // 从保存的 OutputResult 中提取数据
+            double[] cfArray = getOutputData(crossOverResult, new double[0]);
+            int[] freqInCh = getOutput2b(crossOverResult, new int[0]);
+
+            StringBuilder cfLog = new StringBuilder("刷新后 CFArray: [");
+            for (int i = 0; i < cfArray.length; i++) {
+                if (i > 0)
+                    cfLog.append(", ");
+                cfLog.append(cfArray[i]);
+            }
+            cfLog.append("]");
+            sendLog(TAG, "DEBUG", cfLog.toString());
+
+            StringBuilder freqLog = new StringBuilder("刷新后 FreqInCh: [");
+            for (int i = 0; i < freqInCh.length; i++) {
+                if (i > 0)
+                    freqLog.append(", ");
+                freqLog.append(freqInCh[i]);
+            }
+            freqLog.append("]");
+            sendLog(TAG, "DEBUG", freqLog.toString());
+
+            return new CrossOverFrequenciesResult(cfArray, freqInCh);
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "刷新 CrossOverFrequencies 失败: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 检查是否有保存的 CrossOverFrequencies OutputResult
+     * 
+     * @return true 如果有保存的结果，false 否则
+     */
+    public boolean hasCrossOverResult() {
+        return crossOverResult != null;
+    }
+
+    /**
+     * 清除保存的 CrossOverFrequencies OutputResult
+     */
+    public void clearCrossOverResult() {
+        crossOverResult = null;
+        sendLog(TAG, "INFO", "CrossOverFrequencies OutputResult 已清除");
+    }
+
+    /**
+     * 从保存的 compressionThresholdResult 中刷新获取 CT
+     * 用于在页面上点击刷新按钮时更新全局变量
+     * 
+     * @return CT 数组，如果没有保存的结果则返回 null
+     */
+    public double[] refreshCompressionThreshold() {
+        try {
+            if (compressionThresholdResult == null) {
+                sendLog(TAG, "WARN", "没有保存的 CompressionThreshold OutputResult，请先调用 setCompressionThreshold");
+                return null;
+            }
+
+            sendLog(TAG, "INFO", "从保存的 OutputResult 刷新 CT");
+
+            // 从保存的 OutputResult 中提取数据
+            double[] ct = getOutputData(compressionThresholdResult, new double[0]);
+
+            StringBuilder ctLog = new StringBuilder("刷新后 CT: [");
+            for (int i = 0; i < Math.min(ct.length, 5); i++) {
+                if (i > 0)
+                    ctLog.append(", ");
+                ctLog.append(ct[i]);
+            }
+            if (ct.length > 5) {
+                ctLog.append(", ... (共" + ct.length + "个)");
+            }
+            ctLog.append("]");
+            sendLog(TAG, "DEBUG", ctLog.toString());
+
+            return ct;
+        } catch (Exception e) {
+            sendLog(TAG, "ERROR", "刷新 CompressionThreshold 失败: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 检查是否有保存的 CompressionThreshold OutputResult
+     * 
+     * @return true 如果有保存的结果，false 否则
+     */
+    public boolean hasCompressionThresholdResult() {
+        return compressionThresholdResult != null;
+    }
+
+    /**
+     * 清除保存的 CompressionThreshold OutputResult
+     */
+    public void clearCompressionThresholdResult() {
+        compressionThresholdResult = null;
+        sendLog(TAG, "INFO", "CompressionThreshold OutputResult 已清除");
     }
 }

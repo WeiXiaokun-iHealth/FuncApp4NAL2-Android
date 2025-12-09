@@ -24,52 +24,52 @@ object GlobalVariables {
     private val listeners = mutableListOf<(GlobalVariablesState) -> Unit>()
     
     /**
-     * 设置 CFArray (交叉频率数组)
+     * 设置 CFArray (交叉频率数组) - 直接保存引用，地址不变
      */
     @Synchronized
     fun setCFArray(value: DoubleArray) {
-        cfArray = value.copyOf()
+        cfArray = value  // 直接保存引用，不复制
         notifyListeners()
         Log.d(TAG, "CFArray已更新: ${cfArray.contentToString()}")
     }
     
     /**
-     * 设置 FreqInCh (频率通道映射数组)
+     * 设置 FreqInCh (频率通道映射数组) - 直接保存引用，地址不变
      */
     @Synchronized
     fun setFreqInCh(value: IntArray) {
-        freqInCh = value.copyOf()
+        freqInCh = value  // 直接保存引用，不复制
         notifyListeners()
         Log.d(TAG, "FreqInCh已更新: ${freqInCh.contentToString()}")
     }
     
     /**
-     * 设置 CT (压缩阈值数组)
+     * 设置 CT (压缩阈值数组) - 直接保存引用，地址不变
      */
     @Synchronized
     fun setCT(value: DoubleArray) {
-        ct = value.copyOf()
+        ct = value  // 直接保存引用，不复制
         notifyListeners()
         Log.d(TAG, "CT已更新: ${ct.contentToString()}")
     }
     
     /**
-     * 获取 CFArray
+     * 获取 CFArray（返回引用，地址不变）
      */
     @Synchronized
-    fun getCFArray(): DoubleArray = cfArray.copyOf()
+    fun getCFArray(): DoubleArray = cfArray
     
     /**
-     * 获取 FreqInCh
+     * 获取 FreqInCh（返回引用，地址不变）
      */
     @Synchronized
-    fun getFreqInCh(): IntArray = freqInCh.copyOf()
+    fun getFreqInCh(): IntArray = freqInCh
     
     /**
-     * 获取 CT
+     * 获取 CT（返回引用，地址不变）
      */
     @Synchronized
-    fun getCT(): DoubleArray = ct.copyOf()
+    fun getCT(): DoubleArray = ct
     
     /**
      * 删除 CFArray
@@ -146,7 +146,7 @@ object GlobalVariables {
     /**
      * 通知所有监听器
      */
-    private fun notifyListeners() {
+    fun notifyListeners() {
         val state = getAllVariables()
         synchronized(listeners) {
             listeners.forEach { listener ->

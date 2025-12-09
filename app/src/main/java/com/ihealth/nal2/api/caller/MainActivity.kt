@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnDeleteCFArray: Button
     private lateinit var btnDeleteFreqInCh: Button
     private lateinit var btnDeleteCT: Button
+    private lateinit var btnRefreshGlobalVars: Button
     private lateinit var btnClearAllGlobalVars: Button
     
     private val gson = GsonBuilder().setPrettyPrinting().create()
@@ -139,6 +140,7 @@ class MainActivity : AppCompatActivity() {
         btnDeleteCFArray = findViewById(R.id.btnDeleteCFArray)
         btnDeleteFreqInCh = findViewById(R.id.btnDeleteFreqInCh)
         btnDeleteCT = findViewById(R.id.btnDeleteCT)
+        btnRefreshGlobalVars = findViewById(R.id.btnRefreshGlobalVars)
         btnClearAllGlobalVars = findViewById(R.id.btnClearAllGlobalVars)
         
         // 折叠/展开控件
@@ -280,7 +282,47 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupListeners() {
-        // 全局变量按钮
+        // 全局变量刷新按钮
+        btnRefreshGlobalVars.setOnClickListener {
+            val nal2Manager = com.nal2.Nal2Manager.getInstance(this)
+            var refreshed = false
+            
+            // 刷新 CrossOverFrequencies
+            if (nal2Manager.hasCrossOverResult()) {
+                addLog("INFO", "🔄 从 OutputResult 刷新 CrossOverFrequencies...")
+                val refreshResult = nal2Manager.refreshCrossOverFrequencies()
+                if (refreshResult != null) {
+                    GlobalVariables.setCFArray(refreshResult.CFArray)
+                    GlobalVariables.setFreqInCh(refreshResult.FreqInCh)
+                    addLog("SUCCESS", "✅ CFArray 和 FreqInCh 已刷新")
+                    addLog("DEBUG", "  CFArray: ${refreshResult.CFArray.take(5).joinToString(", ")}${if (refreshResult.CFArray.size > 5) " ..." else ""}")
+                    addLog("DEBUG", "  FreqInCh: ${refreshResult.FreqInCh.take(5).joinToString(", ")}${if (refreshResult.FreqInCh.size > 5) " ..." else ""}")
+                    refreshed = true
+                }
+            }
+            
+            // 刷新 CompressionThreshold
+            if (nal2Manager.hasCompressionThresholdResult()) {
+                addLog("INFO", "🔄 从 OutputResult 刷新 CompressionThreshold...")
+                val refreshCT = nal2Manager.refreshCompressionThreshold()
+                if (refreshCT != null) {
+                    GlobalVariables.setCT(refreshCT)
+                    addLog("SUCCESS", "✅ CT 已刷新")
+                    addLog("DEBUG", "  CT: ${refreshCT.take(5).joinToString(", ")}${if (refreshCT.size > 5) " ..." else ""}")
+                    refreshed = true
+                }
+            }
+            
+            if (refreshed) {
+                Toast.makeText(this, "✅ 全局变量已刷新", Toast.LENGTH_SHORT).show()
+            } else {
+                addLog("WARN", "⚠️ 没有保存的 OutputResult")
+                addLog("INFO", "💡 提示：请先通过 API 调用 CrossOverFrequencies_NL2 或 CompressionThreshold_NL2")
+                Toast.makeText(this, "⚠️ 请先调用相关 API 函数", Toast.LENGTH_LONG).show()
+            }
+        }
+        
+        // 全局变量删除按钮
         btnDeleteCFArray.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("确认删除")
@@ -361,11 +403,32 @@ class MainActivity : AppCompatActivity() {
         }
         
         btnRefresh.setOnClickListener {
+            // 刷新服务器状态
             val ipAddress = HttpServer.getLocalIpAddress()
             tvIpAddress.text = ipAddress
             tvApiUrl.text = "http://$ipAddress:8080/api/nal2/process"
-            addLog("INFO", "服务器状态已刷新")
-            Toast.makeText(this, "已刷新", Toast.LENGTH_SHORT).show()
+            
+            // 刷新 CrossOverFrequencies 全局变量
+            val nal2Manager = com.nal2.Nal2Manager.getInstance(this)
+            if (nal2Manager.hasCrossOverResult()) {
+                addLog("INFO", "🔄 刷新 CrossOverFrequencies 全局变量...")
+                val refreshResult = nal2Manager.refreshCrossOverFrequencies()
+                if (refreshResult != null) {
+                    // 更新全局变量
+                    GlobalVariables.setCFArray(refreshResult.CFArray)
+                    GlobalVariables.setFreqInCh(refreshResult.FreqInCh)
+                    addLog("SUCCESS", "✅ CrossOverFrequencies 全局变量已刷新")
+                    addLog("DEBUG", "  CFArray: ${refreshResult.CFArray.take(5).joinToString(", ")}${if (refreshResult.CFArray.size > 5) "..." else ""}")
+                    addLog("DEBUG", "  FreqInCh: ${refreshResult.FreqInCh.take(5).joinToString(", ")}${if (refreshResult.FreqInCh.size > 5) "..." else ""}")
+                    Toast.makeText(this, "✅ 已刷新（包含 CrossOverFrequencies）", Toast.LENGTH_SHORT).show()
+                } else {
+                    addLog("WARN", "⚠️ 刷新 CrossOverFrequencies 失败")
+                    Toast.makeText(this, "已刷新服务器状态", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                addLog("INFO", "服务器状态已刷新")
+                Toast.makeText(this, "已刷新", Toast.LENGTH_SHORT).show()
+            }
         }
         
         // 全屏查看日志
