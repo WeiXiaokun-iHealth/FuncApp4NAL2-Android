@@ -3,11 +3,14 @@ package com.ihealth.nal2.api.caller
 import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -22,6 +25,7 @@ import com.ihealth.nal2.api.caller.server.HttpServer
 import com.ihealth.nal2.api.caller.utils.GlobalVariables
 import com.google.gson.GsonBuilder
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -84,6 +88,7 @@ class MainActivity : AppCompatActivity() {
 
         initViews()
         setupRecyclerView()
+        loadLogsFromFile()  // 加载之前保存的日志
         startHttpServer()
         setupListeners()
     }
@@ -387,6 +392,15 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("清除") { _, _ ->
                     logAdapter.clearLogs()
                     updateLogsTitle()
+                    // 清除保存的日志文件
+                    try {
+                        val file = File(filesDir, "app_logs.txt")
+                        if (file.exists()) {
+                            file.delete()
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                     Toast.makeText(this, "日志已清除", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("取消", null)
@@ -522,14 +536,26 @@ class MainActivity : AppCompatActivity() {
                 "[${log.timestamp}] [${log.type}] ${log.message}"
             }
             
-            // Android 10+ 使用 MediaStore
+            // Android 10+ (API 29+) 使用 MediaStore API
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val file = File(downloadsDir, fileName)
-                file.writeText(logsText)
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
                 
-                Toast.makeText(this, "日志已保存到: Downloads/$fileName", Toast.LENGTH_LONG).show()
-                addLog("SUCCESS", "日志已下载: $fileName")
+                val resolver = contentResolver
+                val uri: Uri? = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                
+                if (uri != null) {
+                    resolver.openOutputStream(uri)?.use { outputStream ->
+                        outputStream.write(logsText.toByteArray())
+                    }
+                    Toast.makeText(this, "日志已保存到 Downloads/$fileName", Toast.LENGTH_LONG).show()
+                    addLog("SUCCESS", "日志已下载到 Downloads: $fileName")
+                } else {
+                    throw Exception("无法创建文件")
+                }
             } else {
                 // Android 9 及以下需要权限
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -543,15 +569,19 @@ class MainActivity : AppCompatActivity() {
                 }
                 
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                if (!downloadsDir.exists()) {
+                    downloadsDir.mkdirs()
+                }
                 val file = File(downloadsDir, fileName)
                 file.writeText(logsText)
                 
-                Toast.makeText(this, "日志已保存到: Downloads/$fileName", Toast.LENGTH_LONG).show()
-                addLog("SUCCESS", "日志已下载: $fileName")
+                Toast.makeText(this, "日志已保存到 Downloads/$fileName", Toast.LENGTH_LONG).show()
+                addLog("SUCCESS", "日志已下载到 Downloads: $fileName")
             }
         } catch (e: Exception) {
             Toast.makeText(this, "下载失败: ${e.message}", Toast.LENGTH_LONG).show()
             addLog("ERROR", "日志下载失败: ${e.message}")
+            e.printStackTrace()
         }
     }
     
@@ -587,6 +617,137 @@ class MainActivity : AppCompatActivity() {
         // 自动滚动到顶部
         if (logs.isNotEmpty()) {
             rvLogs.smoothScrollToPosition(0)
+        }
+        
+        // 保存日志到文件
+        saveLogsToFile()
+    }
+    
+    private fun saveLogsToFile() {
+        try {
+            val logsText = logs.joinToString("\n") { log ->
+                "${log.timestamp}|${log.type}|${log.message}"
+            }
+            val file = File(filesDir, "app_logs.txt")
+            file.writeText(logsText)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    
+    private fun loadLogsFromFile() {
+        try {
+            val file = File(filesDir, "app_logs.txt")
+            if (file.exists()) {
+                val logsText = file.readText()
+                if (logsText.isNotEmpty()) {
+                    val loadedLogs = logsText.split("\n").mapNotNull { line ->
+                        val parts = line.split("|")
+                        if (parts.size == 3) {
+                            LogEntry(
+                                id = System.currentTimeMillis() + logs.size,
+                                timestamp = parts[0],
+                                type = parts[1],
+                                message = parts[2]
+                            )
+                        } else null
+                    }
+                    logs.addAll(loadedLogs)
+                    logAdapter.notifyDataSetChanged()
+                    updateLogsTitle()
+                    
+                    // 检查是否有崩溃日志
+                    checkForCrashLogs()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    
+    private fun checkForCrashLogs() {
+        try {
+            val crashFiles = filesDir.listFiles { file ->
+                file.name.startsWith("crash_") && file.name.endsWith(".txt")
+            }
+            
+            if (crashFiles != null && crashFiles.isNotEmpty()) {
+                // 按修改时间排序，最新的在前
+                val sortedCrashFiles = crashFiles.sortedByDescending { it.lastModified() }
+                val latestCrashFile = sortedCrashFiles.first()
+                
+                // 显示崩溃提示
+                runOnUiThread {
+                    AlertDialog.Builder(this)
+                        .setTitle("⚠️ 检测到应用崩溃")
+                        .setMessage("检测到 ${crashFiles.size} 个崩溃日志文件。\n最新崩溃时间: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(latestCrashFile.lastModified()))}\n\n是否查看详细崩溃信息？")
+                        .setPositiveButton("查看") { _, _ ->
+                            showCrashLogDetails(latestCrashFile)
+                        }
+                        .setNegativeButton("稍后", null)
+                        .setNeutralButton("清除崩溃日志") { _, _ ->
+                            deleteCrashLogs()
+                        }
+                        .show()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+    
+    private fun showCrashLogDetails(crashFile: File) {
+        try {
+            val crashContent = crashFile.readText()
+            
+            val textView = TextView(this).apply {
+                text = crashContent
+                textSize = 10f
+                setTextColor(ContextCompat.getColor(context, android.R.color.black))
+                typeface = android.graphics.Typeface.MONOSPACE
+                setPadding(40, 40, 40, 40)
+            }
+            
+            val scrollView = android.widget.ScrollView(this).apply {
+                addView(textView)
+            }
+            
+            AlertDialog.Builder(this)
+                .setTitle("💥 崩溃详情")
+                .setView(scrollView)
+                .setPositiveButton("关闭", null)
+                .setNeutralButton("复制") { _, _ ->
+                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("Crash Log", crashContent)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(this, "崩溃日志已复制到剪贴板", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("删除此日志") { _, _ ->
+                    crashFile.delete()
+                    Toast.makeText(this, "崩溃日志已删除", Toast.LENGTH_SHORT).show()
+                }
+                .show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "读取崩溃日志失败: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun deleteCrashLogs() {
+        try {
+            val crashFiles = filesDir.listFiles { file ->
+                file.name.startsWith("crash_") && file.name.endsWith(".txt")
+            }
+            
+            var deletedCount = 0
+            crashFiles?.forEach { file ->
+                if (file.delete()) {
+                    deletedCount++
+                }
+            }
+            
+            Toast.makeText(this, "已删除 $deletedCount 个崩溃日志", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "删除崩溃日志失败: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 

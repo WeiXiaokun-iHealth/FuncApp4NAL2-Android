@@ -397,6 +397,7 @@
             <div class="button-group">
                 <button class="btn-primary" onclick="sendToApp()">发送到App处理</button>
                 <button class="btn-success" onclick="runAllTests()">🧪 一键测试46个函数</button>
+                <button class="btn-primary" onclick="runInitTests()" style="background: #FF9500;">🔧 仅测试初始化9步</button>
             </div>
 
             <!-- 测试结果面板 -->
@@ -1123,6 +1124,144 @@
             } catch (error) {
                 showMessage('测试失败: ' + error.message, 'error');
                 console.error('测试失败:', error);
+            }
+        }
+
+        // 仅测试初始化9步
+        async function runInitTests() {
+            // 显示测试面板
+            document.getElementById('testPanel').style.display = 'block';
+            document.getElementById('testResults').innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">正在加载初始化测试...</div>';
+
+            try {
+                // 获取所有测试文件
+                const response = await fetch('/api/test/run-all');
+                const allTests = await response.json();
+
+                // 创建sequence_num到test的映射
+                const testMap = {};
+                allTests.forEach(test => {
+                    testMap[test.sequence_num] = test;
+                });
+
+                // 只获取初始化的9个测试
+                const tests = INIT_SEQUENCE
+                    .filter(seq => testMap[seq])
+                    .map(seq => testMap[seq]);
+
+                document.getElementById('totalTests').textContent = tests.length;
+                document.getElementById('passedTests').textContent = '0';
+                document.getElementById('failedTests').textContent = '0';
+                document.getElementById('testProgress').textContent = '0%';
+
+                let passed = 0;
+                let failed = 0;
+                const results = [];
+
+                // 创建测试结果显示
+                document.getElementById('testResults').innerHTML = '';
+
+                showMessage('开始9步初始化测试...', 'success');
+                console.log('开始9步初始化测试');
+
+                for (let initIdx = 0; initIdx < tests.length; initIdx++) {
+                    const test = tests[initIdx];
+                    const testId = `test-init-${initIdx}`;
+
+                    // 添加测试项
+                    const testItem = document.createElement('div');
+                    testItem.id = testId;
+                    testItem.style.cssText = 'padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #FFA500; background: #FFF8E1; cursor: pointer; transition: transform 0.2s;';
+                    testItem.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600;">🔧 初始化 ${initIdx + 1}/9: ${test.function}</span>
+                            <span id="${testId}-status" style="color: #FFA500;">运行中...</span>
+                        </div>
+                        <div id="${testId}-details" style="font-size: 12px; color: #666; margin-top: 4px;"></div>
+                    `;
+
+                    // 添加鼠标悬停效果
+                    testItem.onmouseenter = () => {
+                        testItem.style.transform = 'translateX(5px)';
+                    };
+                    testItem.onmouseleave = () => {
+                        testItem.style.transform = 'translateX(0)';
+                    };
+
+                    document.getElementById('testResults').appendChild(testItem);
+
+                    // 运行初始化测试（发送到App）
+                    const startTime = Date.now();
+                    try {
+                        const testResult = await fetch(`${appServerUrl}/api/nal2/process`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(test)
+                        });
+
+                        const result = await testResult.json();
+                        const duration = Date.now() - startTime;
+
+                        // 统一判定：return >= 0 且没有错误就是成功
+                        const success = (typeof result.return === 'number' && result.return >= 0 && !result.output_parameters?.error);
+
+                        if (success) {
+                            passed++;
+                            testItem.style.borderColor = '#34C759';
+                            testItem.style.backgroundColor = '#F1F9F1';
+                            document.getElementById(`${testId}-status`).textContent = '✅ 初始化完成';
+                            document.getElementById(`${testId}-status`).style.color = '#34C759';
+                        } else {
+                            failed++;
+                            testItem.style.borderColor = '#FF3B30';
+                            testItem.style.backgroundColor = '#FFF5F5';
+                            document.getElementById(`${testId}-status`).textContent = '❌ 失败';
+                            document.getElementById(`${testId}-status`).style.color = '#FF3B30';
+                            document.getElementById(`${testId}-details`).innerHTML = `
+                                <div style="background: #FFE6E6; padding: 6px; border-radius: 3px; margin-top: 4px;">
+                                    ${result.output_parameters?.error || '未知错误'}
+                                </div>
+                            `;
+                        }
+
+                        document.getElementById(`${testId}-details`).innerHTML += `<div>耗时: ${duration}ms</div>`;
+
+                        const testData = { ...test, result, success, duration };
+                        results.push(testData);
+                        testItem.onclick = () => showTestDetail(testData);
+
+                    } catch (error) {
+                        failed++;
+                        testItem.style.borderColor = '#FF3B30';
+                        testItem.style.backgroundColor = '#FFF5F5';
+                        document.getElementById(`${testId}-status`).textContent = '❌ 异常';
+                        document.getElementById(`${testId}-status`).style.color = '#FF3B30';
+                        document.getElementById(`${testId}-details`).innerHTML = `
+                            <div style="background: #FFE6E6; padding: 6px; border-radius: 3px; margin-top: 4px;">
+                                ${error.message}
+                            </div>
+                        `;
+                    }
+
+                    document.getElementById('passedTests').textContent = passed;
+                    document.getElementById('failedTests').textContent = failed;
+                    document.getElementById('testProgress').textContent = Math.round((initIdx + 1) / tests.length * 100) + '%';
+                    document.getElementById('testResults').scrollTop = document.getElementById('testResults').scrollHeight;
+                }
+
+                console.log('9步初始化测试完成');
+                showMessage(`初始化测试完成！通过: ${passed}, 失败: ${failed}`, passed === tests.length ? 'success' : 'error');
+
+                // 保存测试结果
+                await fetch('/api/test/results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(results)
+                });
+
+            } catch (error) {
+                showMessage('初始化测试失败: ' + error.message, 'error');
+                console.error('初始化测试失败:', error);
             }
         }
 

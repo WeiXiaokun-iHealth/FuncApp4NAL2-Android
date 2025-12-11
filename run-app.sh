@@ -28,52 +28,45 @@ if [ ! -f "$PROJECT_ROOT/settings.gradle.kts" ]; then
     exit 1
 fi
 
-# 检查Android设备连接
+# 先检查USB设备连接
 echo -e "${BLUE}📱 检查Android设备连接...${NC}"
-DEVICES=$(adb devices | grep -v "List" | grep "device$" | wc -l)
+USB_DEVICES=$(adb devices | grep -v "List" | grep -v ":" | grep "device$" | wc -l)
 
-if [ "$DEVICES" -eq 0 ]; then
-    echo -e "${YELLOW}⚠️  未检测到Android设备或模拟器${NC}"
-    echo ""
-    
+# 如果没有USB设备，尝试WiFi连接
+if [ "$USB_DEVICES" -eq 0 ]; then
     # 检查是否有保存的WiFi设备IP
     SAVED_IP=""
     if [ -f "$WIFI_CONFIG_FILE" ]; then
         SAVED_IP=$(cat "$WIFI_CONFIG_FILE" 2>/dev/null | tr -d '\n\r')
     fi
     
-    # 如果有保存的IP，先尝试自动连接
+    # 如果有保存的IP，尝试WiFi连接
     if [ -n "$SAVED_IP" ]; then
-        echo -e "${BLUE}🔌 尝试连接到上次使用的设备 $SAVED_IP:5555...${NC}"
+        echo -e "${BLUE}🔌 未检测到USB设备，尝试WiFi连接到 $SAVED_IP:5555...${NC}"
         adb connect "$SAVED_IP:5555" > /dev/null 2>&1
         sleep 2
-        
-        # 检查是否连接成功
-        DEVICES=$(adb devices | grep -v "List" | grep "device$" | wc -l)
-        if [ "$DEVICES" -gt 0 ]; then
-            echo -e "${GREEN}✅ 自动连接成功！${NC}"
-            DEVICE_NAME=$(adb devices | grep "device$" | awk '{print $1}')
-            echo -e "${GREEN}✅ 检测到设备: $DEVICE_NAME${NC}"
-            echo ""
-            # 跳转到菜单
-        else
-            echo -e "${YELLOW}⚠️  自动连接失败，可能需要重新设置WiFi调试${NC}"
-            echo ""
-        fi
     fi
+else
+    echo -e "${GREEN}✅ 检测到USB设备，优先使用USB连接${NC}"
+fi
+
+# 再次检查所有设备连接
+DEVICES=$(adb devices | grep -v "List" | grep "device$" | wc -l)
+
+if [ "$DEVICES" -eq 0 ]; then
+    echo -e "${YELLOW}⚠️  未检测到Android设备或模拟器${NC}"
+    echo ""
     
-    # 如果自动连接失败或没有保存的IP，询问用户
-    if [ "$DEVICES" -eq 0 ]; then
-        # 尝试通过WiFi连接
-        read -p "是否尝试通过WiFi连接设备? [Y/n]: " try_wifi
-        if [ "$try_wifi" != "n" ] && [ "$try_wifi" != "N" ]; then
-            # 如果有保存的IP，显示为默认值
-            if [ -n "$SAVED_IP" ]; then
-                read -p "请输入设备IP地址 [默认: $SAVED_IP]: " device_ip
-                device_ip=${device_ip:-$SAVED_IP}
-            else
-                read -p "请输入设备IP地址: " device_ip
-            fi
+    # 尝试通过WiFi连接
+    read -p "是否尝试通过WiFi连接设备? [Y/n]: " try_wifi
+    if [ "$try_wifi" != "n" ] && [ "$try_wifi" != "N" ]; then
+        # 如果有保存的IP，显示为默认值
+        if [ -n "$SAVED_IP" ]; then
+            read -p "请输入设备IP地址 [默认: $SAVED_IP]: " device_ip
+            device_ip=${device_ip:-$SAVED_IP}
+        else
+            read -p "请输入设备IP地址: " device_ip
+        fi
         
         if [ -n "$device_ip" ]; then
             echo ""
@@ -161,15 +154,47 @@ if [ "$DEVICES" -eq 0 ]; then
         adb devices
         exit 1
     fi
-    fi
 elif [ "$DEVICES" -eq 1 ]; then
     DEVICE_NAME=$(adb devices | grep "device$" | awk '{print $1}')
-    echo -e "${GREEN}✅ 检测到设备: $DEVICE_NAME${NC}"
+    if [[ "$DEVICE_NAME" == *":"* ]]; then
+        echo -e "${GREEN}✅ 检测到WiFi设备: $DEVICE_NAME${NC}"
+    else
+        echo -e "${GREEN}✅ 检测到USB设备: $DEVICE_NAME${NC}"
+    fi
 else
     echo -e "${YELLOW}⚠️  检测到多个设备:${NC}"
     adb devices
     echo ""
-    echo -e "${YELLOW}将使用第一个设备进行安装${NC}"
+    
+    # 检查是否有USB设备
+    USB_COUNT=$(adb devices | grep -v "List" | grep -v ":" | grep "device$" | wc -l)
+    if [ "$USB_COUNT" -gt 0 ]; then
+        echo -e "${GREEN}✅ 优先使用USB设备进行安装${NC}"
+        # 断开WiFi连接，只保留USB
+        WIFI_DEVICES=$(adb devices | grep -v "List" | grep ":" | grep "device$" | awk '{print $1}')
+        for wifi_dev in $WIFI_DEVICES; do
+            echo -e "${BLUE}断开WiFi设备: $wifi_dev${NC}"
+            adb disconnect "$wifi_dev" > /dev/null 2>&1
+        done
+        
+        # 等待断开完成
+        sleep 1
+        
+        # 获取USB设备ID
+        DEVICE_NAME=$(adb devices | grep -v "List" | grep -v ":" | grep "device$" | head -1 | awk '{print $1}')
+        echo -e "${GREEN}使用设备: $DEVICE_NAME${NC}"
+    else
+        echo -e "${YELLOW}将使用第一个设备进行安装${NC}"
+        DEVICE_NAME=$(adb devices | grep "device$" | head -1 | awk '{print $1}')
+    fi
+fi
+
+# 保存选中的设备ID供后续使用
+SELECTED_DEVICE=""
+if [ "$DEVICES" -eq 1 ]; then
+    SELECTED_DEVICE=$(adb devices | grep "device$" | awk '{print $1}')
+elif [ "$DEVICES" -gt 1 ]; then
+    SELECTED_DEVICE="$DEVICE_NAME"
 fi
 
 echo ""
@@ -206,14 +231,22 @@ case $choice in
         echo ""
         
         echo -e "${BLUE}🚀 启动应用...${NC}"
-        adb shell am start -n com.ihealth.nal2.api.caller/.MainActivity
+        if [ -n "$SELECTED_DEVICE" ]; then
+            adb -s "$SELECTED_DEVICE" shell am start -n com.ihealth.nal2.api.caller/.MainActivity
+        else
+            adb shell am start -n com.ihealth.nal2.api.caller/.MainActivity
+        fi
         echo ""
         echo -e "${GREEN}✅ 应用已启动${NC}"
         echo ""
         
         echo -e "${BLUE}📋 显示应用日志 (Ctrl+C 退出)...${NC}"
         echo ""
-        adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+        if [ -n "$SELECTED_DEVICE" ]; then
+            adb -s "$SELECTED_DEVICE" logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+        else
+            adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+        fi
         ;;
         
     2)
@@ -235,7 +268,11 @@ case $choice in
         
         echo ""
         echo -e "${BLUE}📦 安装应用到设备...${NC}"
-        adb install -r app/build/outputs/apk/release/app-release.apk
+        if [ -n "$SELECTED_DEVICE" ]; then
+            adb -s "$SELECTED_DEVICE" install -r app/build/outputs/apk/release/app-release.apk
+        else
+            adb install -r app/build/outputs/apk/release/app-release.apk
+        fi
         
         echo ""
         echo -e "${GREEN}✅ 应用安装成功！${NC}"
@@ -305,7 +342,11 @@ case $choice in
     8)
         echo ""
         echo -e "${BLUE}🚀 启动应用...${NC}"
-        adb shell am start -n com.ihealth.nal2.api.caller/.MainActivity
+        if [ -n "$SELECTED_DEVICE" ]; then
+            adb -s "$SELECTED_DEVICE" shell am start -n com.ihealth.nal2.api.caller/.MainActivity
+        else
+            adb shell am start -n com.ihealth.nal2.api.caller/.MainActivity
+        fi
         
         echo ""
         echo -e "${GREEN}✅ 应用已启动${NC}"
@@ -315,7 +356,11 @@ case $choice in
         if [ "$viewlog" != "n" ] && [ "$viewlog" != "N" ]; then
             echo -e "${BLUE}📋 显示应用日志 (Ctrl+C 退出)...${NC}"
             echo ""
-            adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+            if [ -n "$SELECTED_DEVICE" ]; then
+                adb -s "$SELECTED_DEVICE" logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+            else
+                adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+            fi
         fi
         ;;
         
@@ -323,13 +368,21 @@ case $choice in
         echo ""
         echo -e "${BLUE}📋 显示应用日志 (Ctrl+C 退出)...${NC}"
         echo ""
-        adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+        if [ -n "$SELECTED_DEVICE" ]; then
+            adb -s "$SELECTED_DEVICE" logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+        else
+            adb logcat -s "FuncApp4NAL2:*" "Nal2Manager:*" "HttpServer:*" "AndroidRuntime:E"
+        fi
         ;;
         
     10)
         echo ""
         echo -e "${BLUE}🗑️  卸载应用...${NC}"
-        adb uninstall com.ihealth.nal2.api.caller
+        if [ -n "$SELECTED_DEVICE" ]; then
+            adb -s "$SELECTED_DEVICE" uninstall com.ihealth.nal2.api.caller
+        else
+            adb uninstall com.ihealth.nal2.api.caller
+        fi
         
         echo ""
         echo -e "${GREEN}✅ 应用已卸载${NC}"

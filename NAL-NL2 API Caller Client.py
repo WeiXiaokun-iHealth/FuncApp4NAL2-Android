@@ -4,14 +4,9 @@ import socket
 import threading
 from dataclasses import dataclass, asdict, field
 from typing import List, Dict, Any, Optional
-
 import requests
 from requests.exceptions import RequestException
-
 from PySide6 import QtCore, QtGui, QtWidgets
-
-APP_NAME = "NAL-NL2 API Caller Client"
-APP_VERSION = "Ver2025.12.08-2"
 
 #Ver2025.12.04-4 增加“输入/输出曲线”标签页; "主页"标签页step1-8初始化按钮追加调用20号函数;
 #Ver2025.12.04-5 “输入/输出曲线”标签页增加了绘制增益曲线的功能，方便直观对比
@@ -19,7 +14,14 @@ APP_VERSION = "Ver2025.12.08-2"
 #Ver2025.12.05-2 所有页面切入后先读取config文件，防止不同步。关闭软件时不写config文件，防止写入旧数据。“增益/响应曲线”标签页修复为0的数据点不绘图的bug
 #Ver2025.12.08-1 "主页"右侧两个"设置RECD(9) REDD(9) REUR(9)"拆分为独立按钮；删除不用的方法
 #Ver2025.12.08-2 "主页"、"函数测试"两个tab独立成为一级类，方便每个页面单独调整
-#Ver2025.12.09-1 “增益/响应曲线”tab布局微调，右侧下面四个按钮上移到与“清除曲线”按钮同一行
+#Ver2025.12.09-1 “增益/响应曲线”tab布局微调，右侧下面四个按钮上移到与“清除曲线”按钮同一行;修正一些bug;部分元素加英文
+#Ver2025.12.09-2 "主页"tab合并部分send和ok_len方法，缩减代码
+#Ver2025.12.10-1 “主页”tab右侧宽度固定为500像素；左侧RECD/REDD/REUR区域增加全部切换按钮;输入/输出曲线tab微调布局
+#Ver2025.12.10-2 修正“增益/响应曲线”tab里切页不重新load参数的bug；
+
+APP_NAME = "NAL-NL2 API Caller Client"
+APP_VERSION = "Ver2025.12.10-2"
+
 
 
 DEFAULT_CONFIG_FILE = "nal_nl2_config.json"
@@ -787,7 +789,7 @@ class IO_tab(QtWidgets.QWidget):
         left_box = QtWidgets.QWidget(); left_box.setFixedWidth(420)
         left = QtWidgets.QVBoxLayout(left_box); left.setContentsMargins(8,8,8,8); left.setSpacing(8)
 
-        gb_param = QtWidgets.QGroupBox("参数"); grid = QtWidgets.QGridLayout(gb_param); r = 0
+        gb_param = QtWidgets.QGroupBox("参数(Parameters)"); grid = QtWidgets.QGridLayout(gb_param); r = 0
         # 行1：limiting / target
         grid.addWidget(QtWidgets.QLabel("limiting"), r, 0)
         self.cbo_limit = QtWidgets.QComboBox()
@@ -817,19 +819,22 @@ class IO_tab(QtWidgets.QWidget):
         left.addWidget(gb_param)
 
         # 按钮区
-        row_btn = QtWidgets.QHBoxLayout()
-        self.btn_reio  = QtWidgets.QPushButton("获取RealEar IO曲线")
-        self.btn_tccio = QtWidgets.QPushButton("获取2cc IO曲线")
-        self.btn_esio  = QtWidgets.QPushButton("获取EarSim IO曲线")
-        for b in (self.btn_reio, self.btn_tccio, self.btn_esio): row_btn.addWidget(b, 1)
-        left.addLayout(row_btn)
+        gb_io = QtWidgets.QGroupBox("获取IO曲线( Get Input / Output curve ):")
+        row_btn = QtWidgets.QHBoxLayout(gb_io)
+        self.btn_reio  = QtWidgets.QPushButton("RealEar IO")
+        self.btn_tccio = QtWidgets.QPushButton("2cc IO")
+        self.btn_esio  = QtWidgets.QPushButton("EarSim IO")
+        for b in (self.btn_reio, self.btn_tccio, self.btn_esio):
+            row_btn.addWidget(b, 1)
+        left.addWidget(gb_io)
+
 
         # log 区
         gb_log = QtWidgets.QGroupBox("log"); vlg = QtWidgets.QVBoxLayout(gb_log)
         self.log = QtWidgets.QPlainTextEdit(); self.log.setReadOnly(True)
         self.log.setLineWrapMode(QtWidgets.QPlainTextEdit.LineWrapMode.NoWrap)
         vlg.addWidget(self.log, 1)
-        self.btn_clear_log = QtWidgets.QPushButton("清空log"); vlg.addWidget(self.btn_clear_log)
+        self.btn_clear_log = QtWidgets.QPushButton("Clear log"); vlg.addWidget(self.btn_clear_log)
         left.addWidget(gb_log, 1)
 
         main.addWidget(left_box)
@@ -1350,105 +1355,6 @@ class GainRespTab(QtWidgets.QWidget):
                         pass
         return None
 
-    def _on_gain_at(self):
-        if not self.win.client.connected:
-            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
-            return
-        c = self.win.cfg
-        try:
-            L_now = float(self.L_edit.text().strip() or c.L)
-        except Exception:
-            L_now = float(c.L)
-        tgtType = int(self.targetType_combo.currentData()) if self.targetType_combo.currentData() is not None else int(c.targetType)
-    
-        ga_gain = (c.GainAt_NL2_gain[:] if isinstance(c.GainAt_NL2_gain, list) and len(c.GainAt_NL2_gain)==19 else [0.0]*19)
-        ga_resp = (c.GainAt_NL2_resp[:] if isinstance(c.GainAt_NL2_resp, list) and len(c.GainAt_NL2_resp)==19 else [0.0]*19)
-        nmax = min(18, int(c.channels))  # 0..channels
-    
-        def worker():
-            mpo = c.MPO if isinstance(c.MPO, list) and len(c.MPO)==19 else [9999]*19
-            for i in range(nmax + 1):
-                params = {
-                    "freqRequired": i,
-                    "targetType": tgtType,
-                    "AC": c.AC, "BC": c.BC, "L": int(L_now), "limiting": c.limiting, "channels": c.channels,
-                    "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids,
-                    "bandWidth": c.bandWidth, "target": c.target, "aidType": c.aidType,
-                    "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType
-                }
-                resp = self._send("GainAt_NL2", params)
-                if not resp:
-                    continue
-                val = self._extract_gainat_return(resp)
-                if isinstance(val, (int, float)):
-                    ga_gain[i] = float(val)
-                    ga_resp[i] = min(float(mpo[i]), ga_gain[i] + L_now)
-    
-            def apply_ui():
-                self.win.cfg.GainAt_NL2_gain = ga_gain[:]
-                self.win.cfg.GainAt_NL2_resp = ga_resp[:]
-                self.win.save_config(self.win.config_path)
-                self._fill_row(self.gain_rows["GainAt_NL2 Gain"], ga_gain)
-                self._fill_row(self.resp_rows["GainAt_NL2 Resp"], ga_resp)
-                self.chart_gain.setSeries("GA", [None if v==0.0 else v for v in ga_gain])
-                self.chart_resp.setSeries("GA", [None if v==0.0 else v for v in ga_resp])
-    
-            self._post_ui(apply_ui)
-    
-        threading.Thread(target=worker, daemon=True).start()
-
-    def _on_gain_at_single(self):
-        if not self.win.client.connected:
-            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
-            return
-        c = self.win.cfg
-        idx = int(self.freqRequired_combo.currentData()) if self.freqRequired_combo.currentData() is not None else int(c.freqRequired)
-        if idx < 0 or idx > 18:
-            idx = 0
-        try:
-            L_now = float(self.L_edit.text().strip() or c.L)
-        except Exception:
-            L_now = float(c.L)
-        tgtType = int(self.targetType_combo.currentData()) if self.targetType_combo.currentData() is not None else int(c.targetType)
-    
-        params = {
-            "freqRequired": idx,
-            "targetType": tgtType,
-            "AC": c.AC, "BC": c.BC, "L": int(L_now), "limiting": c.limiting, "channels": c.channels,
-            "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids,
-            "bandWidth": c.bandWidth, "target": c.target, "aidType": c.aidType,
-            "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType
-        }
-    
-        def worker():
-            resp = self._send("GainAt_NL2", params)
-            if not resp:
-                return
-            val = self._extract_gainat_return(resp)
-            if not isinstance(val, (int, float)):
-                return
-            val = float(val)
-    
-            ga_gain = (c.GainAt_NL2_gain[:] if isinstance(c.GainAt_NL2_gain, list) and len(c.GainAt_NL2_gain)==19 else [0.0]*19)
-            ga_resp = (c.GainAt_NL2_resp[:] if isinstance(c.GainAt_NL2_resp, list) and len(c.GainAt_NL2_resp)==19 else [0.0]*19)
-            ga_gain[idx] = val
-            mpo = c.MPO if isinstance(c.MPO, list) and len(c.MPO)==19 else [9999]*19
-            ga_resp[idx] = min(float(mpo[idx]), val + L_now)
-    
-            def apply_ui():
-                self.win.cfg.GainAt_NL2_gain = ga_gain[:]
-                self.win.cfg.GainAt_NL2_resp = ga_resp[:]
-                self.win.save_config(self.win.config_path)
-                self._fill_row(self.gain_rows["GainAt_NL2 Gain"], ga_gain)
-                self._fill_row(self.resp_rows["GainAt_NL2 Resp"], ga_resp)
-                self.chart_gain.setSeries("GA", [None if v==0.0 else v for v in ga_gain])
-                self.chart_resp.setSeries("GA", [None if v==0.0 else v for v in ga_resp])
-                self.gainat_ret_edit.setText(f"{val:.2f}")
-    
-            self._post_ui(apply_ui)
-    
-        threading.Thread(target=worker, daemon=True).start()
-
     # —— 网络封装：后台线程用；日志改由主线程写 ——
     def _send(self, function: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if not self.win.client.connected:
@@ -1501,67 +1407,162 @@ class GainRespTab(QtWidgets.QWidget):
                     self.win.save_config(self.win.config_path)
                 self._post_ui(apply_ui)
         threading.Thread(target=worker, daemon=True).start()
-
+    
+    def _set_selection_for_mode(self, mode: str) -> int:
+        # 根据模式名设置 selection：REIG=0, REAG=1, 2cc=2, EarSim=3
+        # 返回设置后的 selection 值；若 mode 不匹配，返回原 selection
+        mapping = {"REIG": 0, "REAG": 1, "2cc": 2, "EarSim": 3}
+        old = int(self.win.cfg.selection)
+        if mode in mapping:
+            self.win.cfg.selection = int(mapping[mode])
+            return int(self.win.cfg.selection)
+        return old
+    
+    def _sync_selection_with_targetType(self) -> int:
+        # 从界面读取 targetType，并把 selection=targetType（仅更新内存，不立即落盘）
+        # 返回设置后的 selection
+        try:
+            val = self.targetType_combo.currentData()
+            sel = int(val) if val is not None else int(self.win.cfg.targetType)
+        except Exception:
+            sel = int(self.win.cfg.targetType)
+        self.win.cfg.selection = int(sel)
+        return sel
+    
+    def _fetch_ct_in_memory(self) -> bool:
+        # 以当前 config（含最新的 selection）调用 CompressionThreshold_NL2，
+        # 把返回的 CT 仅更新到内存 self.win.cfg.CT，不立即写文件。
+        # 成功返回 True；失败返回 False。
+        c = self.win.cfg
+        ct_params = {
+            "bandWidth": c.bandWidth,
+            "selection": c.selection,
+            "WBCT": c.WBCT,
+            "aidType": c.aidType,
+            "direction": c.direction,
+            "mic": c.mic,
+            "calcCh": c.calcCh
+        }
+        resp = self._send("CompressionThreshold_NL2", ct_params)
+        if not resp:
+            return False
+        try:
+            outp = (resp or {}).get("output_parameters", {}) or {}
+            ct = self._parse_array(outp, ["CT"])
+            if not ct or len(ct) == 0:
+                return False
+            ct19 = ct[:19] + [0.0] * max(0, 19 - len(ct))
+            self.win.cfg.CT = ct19[:19]   # 仅更新到内存，不立即落盘
+            return True
+        except Exception:
+            return False
+    
     def _on_get_cr(self):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
             return
-        c = self.win.cfg
-        cf = c.centerF if any(x != 0 for x in c.centerF) else FREQS_19[:]
-        params = {"channels": c.channels, "centreFreq": cf, "AC": c.AC, "BC": c.BC,
-                  "direction": c.direction, "mic": c.mic, "limiting": c.limiting,
-                  "ACother": c.ACother, "noOfAids": c.noOfAids}
+    
         def worker():
+            # 禁用所有页签，避免切换导致从磁盘重载覆盖内存修改
+            self._post_ui(lambda: self.win.tabs.setEnabled(False))
+    
+            # 本按钮不改 selection；直接获取最新 CT
+            if not self._fetch_ct_in_memory():
+                def ui_fail():
+                    QtWidgets.QMessageBox.warning(self, "提示", "获取CT失败，已取消后续操作")
+                    self.win.tabs.setEnabled(True)
+                self._post_ui(ui_fail)
+                return
+    
+            c = self.win.cfg
+            cf = c.centerF if any(x != 0 for x in c.centerF) else FREQS_19[:]
+            params = {"channels": c.channels, "centreFreq": cf, "AC": c.AC, "BC": c.BC,
+                      "direction": c.direction, "mic": c.mic, "limiting": c.limiting,
+                      "ACother": c.ACother, "noOfAids": c.noOfAids}
             resp = self._send("CompressionRatio_NL2", params)
-            if not resp: return
+            if not resp:
+                self._post_ui(lambda: self.win.tabs.setEnabled(True))
+                return
             outp = resp.get("output_parameters", {})
             arr = self._parse_array(outp, ["CR"])
             if arr and len(arr) >= 19:
                 def apply_ui():
                     self.win.cfg.CR = arr[:19]
+                    # 同步刷新 CT/CR 行
+                    self._fill_row(self.show_rows["CT"], self.win.cfg.CT)
                     self._fill_row(self.show_rows["CR"], self.win.cfg.CR)
+                    # 一次性落盘
                     self.win.save_config(self.win.config_path)
+                    self.win.tabs.setEnabled(True)
                 self._post_ui(apply_ui)
+            else:
+                self._post_ui(lambda: self.win.tabs.setEnabled(True))
+    
         threading.Thread(target=worker, daemon=True).start()
-
+    
+    
     def _on_get_gain(self, mode: str):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
             return
-        c = self.win.cfg
-        try: L_cur = int(float(self.L_edit.text().strip() or c.L))
-        except Exception: L_cur = c.L
-        if mode == "REIG":
-            fn = "RealEarInsertionGain_NL2"
-            params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
-                      "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
-            keys = ["REIG","gain","REIG19"]
-        elif mode == "REAG":
-            fn = "RealEarAidedGain_NL2"
-            params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
-                      "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
-            keys = ["REAG","gain","REAG19"]
-        elif mode == "2cc":
-            fn = "TccCouplerGain_NL2"
-            params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
-                      "direction": c.direction, "mic": c.mic, "target": c.target, "aidType": c.aidType,
-                      "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
-            keys = ["TccCG", "TccCG19", "gain", "gain19"]
-        else:  # EarSim
-            fn = "EarSimulatorGain_NL2"
-            params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "direction": c.direction, "mic": c.mic,
-                      "limiting": c.limiting, "channels": c.channels, "target": c.target, "aidType": c.aidType,
-                      "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
-            keys = ["ESG", "ESG19", "gain", "gain19"]
-
+        try:
+            L_cur = int(float(self.L_edit.text().strip() or self.win.cfg.L))
+        except Exception:
+            L_cur = self.win.cfg.L
+    
         def worker():
+            self._post_ui(lambda: self.win.tabs.setEnabled(False))
+    
+            old_sel = int(self.win.cfg.selection)
+            # 先把 selection 按按钮模式同步
+            self._set_selection_for_mode(mode)
+    
+            # 先获取 CT；失败回滚 selection 并中止
+            if not self._fetch_ct_in_memory():
+                def ui_fail():
+                    self.win.cfg.selection = old_sel
+                    QtWidgets.QMessageBox.warning(self, "提示", "获取CT失败，已取消后续操作")
+                    self.win.tabs.setEnabled(True)
+                self._post_ui(ui_fail)
+                return
+    
+            c = self.win.cfg
+            if mode == "REIG":
+                fn = "RealEarInsertionGain_NL2"
+                params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
+                          "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
+                keys = ["REIG","gain","REIG19"]
+            elif mode == "REAG":
+                fn = "RealEarAidedGain_NL2"
+                params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
+                          "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
+                keys = ["REAG","gain","REAG19"]
+            elif mode == "2cc":
+                fn = "TccCouplerGain_NL2"
+                params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "limiting": c.limiting, "channels": c.channels,
+                          "direction": c.direction, "mic": c.mic, "target": c.target, "aidType": c.aidType,
+                          "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
+                keys = ["TccCG", "TccCG19", "gain", "gain19"]
+            else:  # EarSim
+                fn = "EarSimulatorGain_NL2"
+                params = {"AC": c.AC, "BC": c.BC, "L": L_cur, "direction": c.direction, "mic": c.mic,
+                          "limiting": c.limiting, "channels": c.channels, "target": c.target, "aidType": c.aidType,
+                          "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
+                keys = ["ESG", "ESG19", "gain", "gain19"]
+    
             resp = self._send(fn, params)
-            if not resp: return
+            if not resp:
+                self._post_ui(lambda: self.win.tabs.setEnabled(True))
+                return
             outp = resp.get("output_parameters", {})
             arr = self._parse_array(outp, keys)
-            if not arr: return
+            if not arr:
+                self._post_ui(lambda: self.win.tabs.setEnabled(True))
+                return
             arr = arr[:19]
+    
             def apply_ui():
+                # 曲线/表格
                 self._fill_row(self.gain_rows["LdB Gain"], arr)
                 self.chart_gain.setSeries("L", [arr[i] for i in range(19)])
                 self.win.cfg.gainL_19 = arr[:]
@@ -1570,45 +1571,210 @@ class GainRespTab(QtWidgets.QWidget):
                 self._fill_row(self.resp_rows["LdB Resp"], resp_vals)
                 self.chart_resp.setSeries("L", [resp_vals[i] for i in range(19)])
                 self.win.cfg.respL_19 = resp_vals[:]
+                # 刷新 CT 行并一次性落盘（包含 selection/CT）
+                self._fill_row(self.show_rows["CT"], self.win.cfg.CT)
                 self.win.save_config(self.win.config_path)
+                self.win.tabs.setEnabled(True)
+    
             self._post_ui(apply_ui)
+    
         threading.Thread(target=worker, daemon=True).start()
-
+    
+    
+    def _on_gain_at(self):
+        if not self.win.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        c0 = self.win.cfg
+        try:
+            L_now = float(self.L_edit.text().strip() or c0.L)
+        except Exception:
+            L_now = float(c0.L)
+        tgtType = int(self.targetType_combo.currentData()) if self.targetType_combo.currentData() is not None else int(c0.targetType)
+    
+        def worker():
+            self._post_ui(lambda: self.win.tabs.setEnabled(False))
+    
+            old_sel = int(self.win.cfg.selection)
+            # selection = targetType
+            self._sync_selection_with_targetType()
+    
+            if not self._fetch_ct_in_memory():
+                def ui_fail():
+                    self.win.cfg.selection = old_sel
+                    QtWidgets.QMessageBox.warning(self, "提示", "获取CT失败，已取消后续操作")
+                    self.win.tabs.setEnabled(True)
+                self._post_ui(ui_fail)
+                return
+    
+            c = self.win.cfg
+            ga_gain = (c.GainAt_NL2_gain[:] if isinstance(c.GainAt_NL2_gain, list) and len(c.GainAt_NL2_gain)==19 else [0.0]*19)
+            ga_resp = (c.GainAt_NL2_resp[:] if isinstance(c.GainAt_NL2_resp, list) and len(c.GainAt_NL2_resp)==19 else [0.0]*19)
+            mpo = c.MPO if isinstance(c.MPO, list) and len(c.MPO)==19 else [9999]*19
+            nmax = min(18, int(c.channels))  # 0..channels
+    
+            for i in range(nmax + 1):
+                params = {
+                    "freqRequired": i,
+                    "targetType": tgtType,
+                    "AC": c.AC, "BC": c.BC, "L": int(L_now), "limiting": c.limiting, "channels": c.channels,
+                    "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids,
+                    "bandWidth": c.bandWidth, "target": c.target, "aidType": c.aidType,
+                    "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType
+                }
+                resp = self._send("GainAt_NL2", params)
+                if not resp:
+                    continue
+                val = self._extract_gainat_return(resp)
+                if isinstance(val, (int, float)):
+                    ga_gain[i] = float(val)
+                    ga_resp[i] = min(float(mpo[i]), ga_gain[i] + L_now)
+    
+            def apply_ui():
+                self.win.cfg.GainAt_NL2_gain = ga_gain[:]
+                self.win.cfg.GainAt_NL2_resp = ga_resp[:]
+                self._fill_row(self.gain_rows["GainAt_NL2 Gain"], ga_gain)
+                self._fill_row(self.resp_rows["GainAt_NL2 Resp"], ga_resp)
+                self.chart_gain.setSeries("GA", ga_gain[:])
+                self.chart_resp.setSeries("GA", ga_resp[:])
+                # 刷新 CT 行并一次性落盘
+                self._fill_row(self.show_rows["CT"], self.win.cfg.CT)
+                self.win.save_config(self.win.config_path)
+                self.win.tabs.setEnabled(True)
+    
+            self._post_ui(apply_ui)
+    
+        threading.Thread(target=worker, daemon=True).start()
+    
+    
+    def _on_gain_at_single(self):
+        if not self.win.client.connected:
+            QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
+            return
+        c0 = self.win.cfg
+        idx = int(self.freqRequired_combo.currentData()) if self.freqRequired_combo.currentData() is not None else int(c0.freqRequired)
+        if idx < 0 or idx > 18:
+            idx = 0
+        try:
+            L_now = float(self.L_edit.text().strip() or c0.L)
+        except Exception:
+            L_now = float(c0.L)
+        tgtType = int(self.targetType_combo.currentData()) if self.targetType_combo.currentData() is not None else int(c0.targetType)
+    
+        def worker():
+            self._post_ui(lambda: self.win.tabs.setEnabled(False))
+    
+            old_sel = int(self.win.cfg.selection)
+            # selection = targetType
+            self._sync_selection_with_targetType()
+    
+            if not self._fetch_ct_in_memory():
+                def ui_fail():
+                    self.win.cfg.selection = old_sel
+                    QtWidgets.QMessageBox.warning(self, "提示", "获取CT失败，已取消后续操作")
+                    self.win.tabs.setEnabled(True)
+                self._post_ui(ui_fail)
+                return
+    
+            c = self.win.cfg
+            params = {
+                "freqRequired": idx,
+                "targetType": tgtType,
+                "AC": c.AC, "BC": c.BC, "L": int(L_now), "limiting": c.limiting, "channels": c.channels,
+                "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids,
+                "bandWidth": c.bandWidth, "target": c.target, "aidType": c.aidType,
+                "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType
+            }
+            resp = self._send("GainAt_NL2", params)
+            if not resp:
+                self._post_ui(lambda: self.win.tabs.setEnabled(True))
+                return
+            val = self._extract_gainat_return(resp)
+            if not isinstance(val, (int, float)):
+                self._post_ui(lambda: self.win.tabs.setEnabled(True))
+                return
+            val = float(val)
+    
+            ga_gain = (c.GainAt_NL2_gain[:] if isinstance(c.GainAt_NL2_gain, list) and len(c.GainAt_NL2_gain)==19 else [0.0]*19)
+            ga_resp = (c.GainAt_NL2_resp[:] if isinstance(c.GainAt_NL2_resp, list) and len(c.GainAt_NL2_resp)==19 else [0.0]*19)
+            ga_gain[idx] = val
+            mpo = c.MPO if isinstance(c.MPO, list) and len(c.MPO)==19 else [9999]*19
+            ga_resp[idx] = min(float(mpo[idx]), val + L_now)
+    
+            def apply_ui():
+                self.win.cfg.GainAt_NL2_gain = ga_gain[:]
+                self.win.cfg.GainAt_NL2_resp = ga_resp[:]
+                self._fill_row(self.gain_rows["GainAt_NL2 Gain"], ga_gain)
+                self._fill_row(self.resp_rows["GainAt_NL2 Resp"], ga_resp)
+                self.chart_gain.setSeries("GA", ga_gain[:])
+                self.chart_resp.setSeries("GA", ga_resp[:])
+                self.gainat_ret_edit.setText(f"{val:.2f}")
+                # 刷新 CT 行并一次性落盘
+                self._fill_row(self.show_rows["CT"], self.win.cfg.CT)
+                self.win.save_config(self.win.config_path)
+                self.win.tabs.setEnabled(True)
+    
+            self._post_ui(apply_ui)
+    
+        threading.Thread(target=worker, daemon=True).start()
+    
+    
     def _on_std_curves(self, mode: str):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
             return
-        c = self.win.cfg
-        if mode == "REIG":
-            fn = "RealEarInsertionGain_NL2"; keys=["REIG","gain","REIG19"]
-            def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
-                                    "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
-        elif mode == "REAG":
-            fn = "RealEarAidedGain_NL2"; keys=["REAG","gain","REAG19"]
-            def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
-                                    "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
-        elif mode == "2cc":
-            fn = "TccCouplerGain_NL2"; keys=["TccCG", "TccCG19", "gain", "gain19"]
-            def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
-                                    "direction": c.direction, "mic": c.mic, "target": c.target, "aidType": c.aidType,
-                                    "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
-        else:
-            fn = "EarSimulatorGain_NL2"; keys=["ESG", "ESG19", "gain", "gain19"]
-            def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "direction": c.direction, "mic": c.mic,
-                                    "limiting": c.limiting, "channels": c.channels, "target": c.target, "aidType": c.aidType,
-                                    "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
-
+    
         def worker():
+            self._post_ui(lambda: self.win.tabs.setEnabled(False))
+    
+            old_sel = int(self.win.cfg.selection)
+            # 按模式名设置 selection
+            self._set_selection_for_mode(mode)
+    
+            # 先拉 CT；失败回滚 selection 并中止
+            if not self._fetch_ct_in_memory():
+                def ui_fail():
+                    self.win.cfg.selection = old_sel
+                    QtWidgets.QMessageBox.warning(self, "提示", "获取CT失败，已取消后续操作")
+                    self.win.tabs.setEnabled(True)
+                self._post_ui(ui_fail)
+                return
+    
+            c = self.win.cfg
+            if mode == "REIG":
+                fn = "RealEarInsertionGain_NL2"; keys=["REIG","gain","REIG19"]
+                def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
+                                        "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
+            elif mode == "REAG":
+                fn = "RealEarAidedGain_NL2"; keys=["REAG","gain","REAG19"]
+                def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
+                                        "direction": c.direction, "mic": c.mic, "ACother": c.ACother, "noOfAids": c.noOfAids}
+            elif mode == "2cc":
+                fn = "TccCouplerGain_NL2"; keys=["TccCG", "TccCG19", "gain", "gain19"]
+                def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "limiting": c.limiting, "channels": c.channels,
+                                        "direction": c.direction, "mic": c.mic, "target": c.target, "aidType": c.aidType,
+                                        "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
+            else:
+                fn = "EarSimulatorGain_NL2"; keys=["ESG", "ESG19", "gain", "gain19"]
+                def params(Lv): return {"AC": c.AC, "BC": c.BC, "L": Lv, "direction": c.direction, "mic": c.mic,
+                                        "limiting": c.limiting, "channels": c.channels, "target": c.target, "aidType": c.aidType,
+                                        "ACother": c.ACother, "noOfAids": c.noOfAids, "tubing": c.tubing, "vent": c.vent, "RECDmeasType": c.RECDmeasType}
+    
             results = {}
             for Lv, tag in [(50,"50"),(65,"65"),(80,"80")]:
                 resp = self._send(fn, params(Lv))
-                if not resp: return
+                if not resp:
+                    self._post_ui(lambda: self.win.tabs.setEnabled(True))
+                    return
                 outp = resp.get("output_parameters", {})
                 arr = self._parse_array(outp, keys)
-                if not arr: return
+                if not arr:
+                    self._post_ui(lambda: self.win.tabs.setEnabled(True))
+                    return
                 results[tag] = arr[:19]
-
+    
             def apply_ui():
+                # 增益三条
                 self._fill_row(self.gain_rows["50dB Gain"], results["50"])
                 self._fill_row(self.gain_rows["65dB Gain"], results["65"])
                 self._fill_row(self.gain_rows["80dB Gain"], results["80"])
@@ -1618,7 +1784,8 @@ class GainRespTab(QtWidgets.QWidget):
                 self.win.cfg.gain50_19 = results["50"][:]
                 self.win.cfg.gain65_19 = results["65"][:]
                 self.win.cfg.gain80_19 = results["80"][:]
-
+    
+                # 响应三条
                 mpo = self.win.cfg.MPO if isinstance(self.win.cfg.MPO, list) and len(self.win.cfg.MPO) == 19 else [9999]*19
                 r50 = [min(mpo[i], results["50"][i] + 50.0) for i in range(19)]
                 r65 = [min(mpo[i], results["65"][i] + 65.0) for i in range(19)]
@@ -1632,12 +1799,41 @@ class GainRespTab(QtWidgets.QWidget):
                 self.win.cfg.resp50_19 = r50[:]
                 self.win.cfg.resp65_19 = r65[:]
                 self.win.cfg.resp80_19 = r80[:]
+    
+                # 刷新 CT 行并一次性落盘（包含 selection/CT）
+                self._fill_row(self.show_rows["CT"], self.win.cfg.CT)
                 self.win.save_config(self.win.config_path)
-
+                self.win.tabs.setEnabled(True)
+    
             self._post_ui(apply_ui)
+    
         threading.Thread(target=worker, daemon=True).start()
 
+    def _apply_left_params_from_cfg(self):
+        #将左侧所有参数控件与最新 config 同步（阻断信号，避免误触发保存）
+        c = self.win.cfg
+        # 文本框
+        try:
+            self.L_edit.blockSignals(True)
+            self.L_edit.setText(str(int(c.L)))
+        finally:
+            self.L_edit.blockSignals(False)
+    
+        # 下拉：target / limiting / type
+        CommonFunc.set_combo_safely(self.target_combo, int(c.target))
+        CommonFunc.set_combo_safely(self.limit_combo,  int(c.limiting))
+        CommonFunc.set_combo_safely(self.type_combo,   int(c.type))
+    
+        # GainAt_NL2 区域：targetType / freqRequired
+        if hasattr(self, "targetType_combo"):
+            CommonFunc.set_combo_safely(self.targetType_combo, int(c.targetType))
+        if hasattr(self, "freqRequired_combo"):
+            CommonFunc.set_combo_safely(self.freqRequired_combo, int(c.freqRequired))
+    
+    
     def reload_from_cfg(self):
+        #切页时调用：先刷新左侧参数控件，再刷新右侧图表/表格（从 config 文件重载后）
+        self._apply_left_params_from_cfg()
         self._load_from_cfg()
 
     def _series_from_cfg(self, arr: List[float]) -> List[Optional[float]]:
@@ -1739,7 +1935,7 @@ class HomePageTab(QtWidgets.QWidget):
         def mk_combo(parent_layout: QtWidgets.QGridLayout, row: int, col: int,
                      label: str, options: List[tuple], cur_value: int) -> QtWidgets.QComboBox:
             lab = QtWidgets.QLabel(label)
-            lab.setFixedWidth(self.win.LABEL_W)
+            lab.setFixedWidth(self.win.LABEL_W)#self.win.LABEL_W
             cb = QtWidgets.QComboBox()
             cb.setFixedWidth(self.win.COMBO_W)
             for k, v in options:
@@ -1848,6 +2044,10 @@ class HomePageTab(QtWidgets.QWidget):
         self.RECDmeasType_combo = mk_combo(grid_types, 0, 0, "RECDmeasType", [(0,"预估值(Predicted)"),(1,"实测值(Measured)")], self.win.cfg.RECDmeasType)
         self.REDD_defValues_combo = mk_combo(grid_types, 0, 1, "REDD_defValues", [(0,"预估值(Predicted)"),(1,"用户数据(use client data)")], self.win.cfg.REDD_defValues)
         self.REUR_defValues_combo = mk_combo(grid_types, 0, 2, "REUR_defValues", [(0,"预估值(Predicted)"),(1,"用户数据(use client data)")], self.win.cfg.REUR_defValues)
+
+        self.btn_switch_all = QtWidgets.QPushButton("Switch all") # 新增：切换全部按钮
+        grid_types.addWidget(self.btn_switch_all, 0, 6, 1, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
+        self.btn_switch_all.clicked.connect(self.on_switch_all)
 
         grid_types.setColumnStretch(6, 1)
 
@@ -2009,19 +2209,27 @@ class HomePageTab(QtWidgets.QWidget):
 
         # 右侧
         right_container = QtWidgets.QWidget()
+        right_container.setFixedWidth(500)  # 新增改动：固定宽度 500px
         right_layout = QtWidgets.QVBoxLayout(right_container)
         hsplit.addWidget(right_container, 1)
 
+        # Configuration file区域
         gb_file = QtWidgets.QGroupBox("Configuration file")
         right_layout.addWidget(gb_file)
-        v_file = QtWidgets.QVBoxLayout(gb_file)
+        v_main = QtWidgets.QVBoxLayout(gb_file)# 创建垂直主布局
+        
+        # 第一行：按钮水平排列
+        h_buttons = QtWidgets.QHBoxLayout()
         btn_load_cfg = QtWidgets.QPushButton("Load config file")
         btn_saveas_cfg = QtWidgets.QPushButton("Config file save as...")
-        v_file.addWidget(btn_load_cfg)
-        v_file.addWidget(btn_saveas_cfg)
-        # 注意：移到 HomePageTab 内部
+        h_buttons.addWidget(btn_load_cfg)
+        h_buttons.addWidget(btn_saveas_cfg)
+        v_main.addLayout(h_buttons)  # 把水平布局加到垂直布局中
+        
+        # 第二行：文件标签（单独一行）
         self.lbl_cfg = QtWidgets.QLabel(f"Current file: {os.path.basename(self.win.config_path)}")
-        v_file.addWidget(self.lbl_cfg)
+        v_main.addWidget(self.lbl_cfg)
+
 
         gb_apply = QtWidgets.QGroupBox("Apply to server (Step 1-8)")
         right_layout.addWidget(gb_apply)
@@ -2276,31 +2484,62 @@ class HomePageTab(QtWidgets.QWidget):
         except Exception as e:
             print("autosave_config error:", e)
 
+    def on_switch_all(self):
+        """
+        从磁盘配置读取 RECDmeasType：
+          - 若为 0，则把 RECDmeasType/REDD_defValues/REUR_defValues 全部切到 1
+          - 若为 1，则把三者全部切到 0
+        然后保存到配置文件，并刷新左侧三个下拉框显示
+        """
+        try:
+            # 从文件读取当前值（以磁盘为准）
+            cfg_disk = self.win.load_config(self.win.config_path)
+            cur = int(getattr(cfg_disk, "RECDmeasType", 0))
+        except Exception:
+            cur = 0
+
+        new_val = 1 if cur == 0 else 0
+
+        # 更新内存中的 cfg
+        self.win.cfg.RECDmeasType   = new_val
+        self.win.cfg.REDD_defValues = new_val
+        self.win.cfg.REUR_defValues = new_val
+
+        # 立即写回配置文件
+        self.win.save_config(self.win.config_path)
+
+        # 刷新三个 combobox 的显示（阻断信号，避免重复触发 autosave）
+        CommonFunc.set_combo_safely(self.RECDmeasType_combo, new_val)
+        CommonFunc.set_combo_safely(self.REDD_defValues_combo, new_val)
+        CommonFunc.set_combo_safely(self.REUR_defValues_combo, new_val)
+
+    def _send(self, function, params):
+        req = {"function": function, "input_parameters": params}
+        resp = self.win.client.post_json(req)
+        self.win.handle_response_update_config(resp)
+        self._log_send_resp(req, resp)
+        return resp
+
+    def _ok_len(self, arr, n): return isinstance(arr, list) and len(arr) == n
+
     def on_fetch_rrr_19(self):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器")
             return
         c = self.win.cfg
 
-        def send(function, params):
-            req = {"function": function, "input_parameters": params}
-            resp = self.win.client.post_json(req)
-            self.win.handle_response_update_config(resp)
-            self._log_send_resp(req, resp)
-            return resp
-
         def worker():
             try:
-                send("GetRECDh_indiv_NL2", {
+                self._send("GetRECDh_indiv_NL2", {
                     "RECDmeasType": c.RECDmeasType, "dateOfBirth": c.dateOfBirth, "aidType": c.aidType,
                     "tubing": c.tubing, "vent": c.vent, "coupler": c.coupler, "fittingDepth": c.fittingDepth
                 })
-                send("GetRECDt_indiv_NL2", {
+                self._send("GetRECDt_indiv_NL2", {
                     "RECDmeasType": c.RECDmeasType, "dateOfBirth": c.dateOfBirth, "aidType": c.aidType,
                     "tubing": c.tubing, "vent": c.vent, "earpiece": c.earpiece, "coupler": c.coupler, "fittingDepth": c.fittingDepth
                 })
-                send("GetREDDindiv", {"REDD_defValues": c.REDD_defValues})
-                send("GetREURindiv", {"REUR_defValues": c.REUR_defValues, "dateOfBirth": c.dateOfBirth,
+                self._send("GetREDDindiv", {"REDD_defValues": c.REDD_defValues})
+                self._send("GetREURindiv", {"REUR_defValues": c.REUR_defValues, "dateOfBirth": c.dateOfBirth,
                                       "direction": c.direction, "mic": c.mic})
             except Exception as e:
                 self.win.errorReady.emit(f"获取RECD/REDD/REUR失败: {e}")
@@ -2313,25 +2552,18 @@ class HomePageTab(QtWidgets.QWidget):
             return
         c = self.win.cfg
 
-        def send(function, params):
-            req = {"function": function, "input_parameters": params}
-            resp = self.win.client.post_json(req)
-            self.win.handle_response_update_config(resp)
-            self._log_send_resp(req, resp)
-            return resp
-
         def worker():
             try:
-                send("GetRECDh_indiv9_NL2", {
+                self._send("GetRECDh_indiv9_NL2", {
                     "RECDmeasType": c.RECDmeasType, "dateOfBirth": c.dateOfBirth, "aidType": c.aidType,
                     "tubing": c.tubing, "vent": c.vent, "coupler": c.coupler, "fittingDepth": c.fittingDepth
                 })
-                send("GetRECDt_indiv9_NL2", {
+                self._send("GetRECDt_indiv9_NL2", {
                     "RECDmeasType": c.RECDmeasType, "dateOfBirth": c.dateOfBirth, "aidType": c.aidType,
                     "tubing": c.tubing, "vent": c.vent, "earpiece": c.earpiece, "coupler": c.coupler, "fittingDepth": c.fittingDepth
                 })
-                send("GetREDDindiv9", {"REDD_defValues": c.REDD_defValues})
-                send("GetREURindiv9", {"REUR_defValues": c.REUR_defValues, "dateOfBirth": c.dateOfBirth,
+                self._send("GetREDDindiv9", {"REDD_defValues": c.REDD_defValues})
+                self._send("GetREURindiv9", {"REUR_defValues": c.REUR_defValues, "dateOfBirth": c.dateOfBirth,
                                        "direction": c.direction, "mic": c.mic})
             except Exception as e:
                 self.win.errorReady.emit(f"获取RECD9/REDD9/REUR9失败: {e}")
@@ -2348,19 +2580,13 @@ class HomePageTab(QtWidgets.QWidget):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器"); return
         c = self.win.cfg
-        def ok_len(arr, n): return isinstance(arr, list) and len(arr) == n
-        if not ok_len(c.RECDh, 19) or not ok_len(c.RECDt, 19):
+        if not self._ok_len(c.RECDh, 19) or not self._ok_len(c.RECDt, 19):
             QtWidgets.QMessageBox.warning(self, "提示", "配置文件中 RECDh/RECDt(19点) 不完整，无法设置"); return
-        def send(function, params):
-            req = {"function": function, "input_parameters": params}
-            resp = self.win.client.post_json(req)
-            self.win.handle_response_update_config(resp)
-            self._log_send_resp(req, resp)
-            return resp
+
         def worker():
             try:
-                send("SetRECDh_indiv_NL2", {"RECDh": c.RECDh})
-                send("SetRECDt_indiv_NL2", {"RECDt": c.RECDt})
+                self._send("SetRECDh_indiv_NL2", {"RECDh": c.RECDh})
+                self._send("SetRECDt_indiv_NL2", {"RECDt": c.RECDt})
             except Exception as e:
                 self.win.errorReady.emit(f"设置RECD失败: {e}")
         threading.Thread(target=worker, daemon=True).start()
@@ -2369,18 +2595,12 @@ class HomePageTab(QtWidgets.QWidget):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器"); return
         c = self.win.cfg
-        def ok_len(arr, n): return isinstance(arr, list) and len(arr) == n
-        if not ok_len(c.REDD, 19):
+        if not self._ok_len(c.REDD, 19):
             QtWidgets.QMessageBox.warning(self, "提示", "配置文件中 REDD(19点) 不完整，无法设置"); return
-        def send(function, params):
-            req = {"function": function, "input_parameters": params}
-            resp = self.win.client.post_json(req)
-            self.win.handle_response_update_config(resp)
-            self._log_send_resp(req, resp)
-            return resp
+
         def worker():
             try:
-                send("SetREDDindiv", {"REDD": c.REDD, "REDD_defValues": c.REDD_defValues})
+                self._send("SetREDDindiv", {"REDD": c.REDD, "REDD_defValues": c.REDD_defValues})
             except Exception as e:
                 self.win.errorReady.emit(f"设置REDD失败: {e}")
         threading.Thread(target=worker, daemon=True).start()
@@ -2389,18 +2609,12 @@ class HomePageTab(QtWidgets.QWidget):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器"); return
         c = self.win.cfg
-        def ok_len(arr, n): return isinstance(arr, list) and len(arr) == n
-        if not ok_len(c.REUR, 19):
+        if not self._ok_len(c.REUR, 19):
             QtWidgets.QMessageBox.warning(self, "提示", "配置文件中 REUR(19点) 不完整，无法设置"); return
-        def send(function, params):
-            req = {"function": function, "input_parameters": params}
-            resp = self.win.client.post_json(req)
-            self.win.handle_response_update_config(resp)
-            self._log_send_resp(req, resp)
-            return resp
+
         def worker():
             try:
-                send("SetREURindiv", {
+                self._send("SetREURindiv", {
                     "REUR": c.REUR, "REUR_defValues": c.REUR_defValues,
                     "dateOfBirth": c.dateOfBirth, "direction": c.direction, "mic": c.mic
                 })
@@ -2412,19 +2626,12 @@ class HomePageTab(QtWidgets.QWidget):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器"); return
         c = self.win.cfg
-        def ok_len(arr, n): return isinstance(arr, list) and len(arr) == n
-        if not ok_len(c.RECDh9, 9) or not ok_len(c.RECDt9, 9):
+        if not self._ok_len(c.RECDh9, 9) or not self._ok_len(c.RECDt9, 9):
             QtWidgets.QMessageBox.warning(self, "提示", "配置文件中 RECDh9/RECDt9(9点) 不完整，无法设置"); return
-        def send(function, params):
-            req = {"function": function, "input_parameters": params}
-            resp = self.win.client.post_json(req)
-            self.win.handle_response_update_config(resp)
-            self._log_send_resp(req, resp)
-            return resp
         def worker():
             try:
-                send("SetRECDh_indiv9_NL2", {"RECDh9": c.RECDh9})
-                send("SetRECDt_indiv9_NL2", {"RECDt9": c.RECDt9})
+                self._send("SetRECDh_indiv9_NL2", {"RECDh9": c.RECDh9})
+                self._send("SetRECDt_indiv9_NL2", {"RECDt9": c.RECDt9})
             except Exception as e:
                 self.win.errorReady.emit(f"设置RECD9失败: {e}")
         threading.Thread(target=worker, daemon=True).start()
@@ -2433,18 +2640,11 @@ class HomePageTab(QtWidgets.QWidget):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器"); return
         c = self.win.cfg
-        def ok_len(arr, n): return isinstance(arr, list) and len(arr) == n
-        if not ok_len(c.REDD9, 9):
+        if not self._ok_len(c.REDD9, 9):
             QtWidgets.QMessageBox.warning(self, "提示", "配置文件中 REDD9(9点) 不完整，无法设置"); return
-        def send(function, params):
-            req = {"function": function, "input_parameters": params}
-            resp = self.win.client.post_json(req)
-            self.win.handle_response_update_config(resp)
-            self._log_send_resp(req, resp)
-            return resp
         def worker():
             try:
-                send("SetREDDindiv9", {"REDD9": c.REDD9, "REDD_defValues": c.REDD_defValues})
+                self._send("SetREDDindiv9", {"REDD9": c.REDD9, "REDD_defValues": c.REDD_defValues})
             except Exception as e:
                 self.win.errorReady.emit(f"设置REDD9失败: {e}")
         threading.Thread(target=worker, daemon=True).start()
@@ -2453,18 +2653,11 @@ class HomePageTab(QtWidgets.QWidget):
         if not self.win.client.connected:
             QtWidgets.QMessageBox.warning(self, "提示", "请先连接服务器"); return
         c = self.win.cfg
-        def ok_len(arr, n): return isinstance(arr, list) and len(arr) == n
-        if not ok_len(c.REUR9, 9):
+        if not self._ok_len(c.REUR9, 9):
             QtWidgets.QMessageBox.warning(self, "提示", "配置文件中 REUR9(9点) 不完整，无法设置"); return
-        def send(function, params):
-            req = {"function": function, "input_parameters": params}
-            resp = self.win.client.post_json(req)
-            self.win.handle_response_update_config(resp)
-            self._log_send_resp(req, resp)
-            return resp
         def worker():
             try:
-                send("SetREURindiv9", {
+                self._send("SetREURindiv9", {
                     "REUR9": c.REUR9, "REUR_defValues": c.REUR_defValues,
                     "dateOfBirth": c.dateOfBirth, "direction": c.direction, "mic": c.mic
                 })
@@ -2661,8 +2854,10 @@ class HomePageTab(QtWidgets.QWidget):
         # 刷新其他页
         if hasattr(self.win, "func_tab") and hasattr(self.win.func_tab, "reload_from_cfg"):
             self.win.func_tab.reload_from_cfg()
-        if hasattr(self.win, "gr_tab"):
-            self.win.gr_tab._load_from_cfg()
+        #if hasattr(self.win, "gr_tab"):
+        #    self.win.gr_tab._load_from_cfg()
+        if hasattr(self.win, "gr_tab") and hasattr(self.win.gr_tab, "reload_from_cfg"):
+            self.win.gr_tab.reload_from_cfg()
         self.update_rrr_entries_from_cfg()
         if hasattr(self, "update_ref_entries_from_cfg"):
             self.update_ref_entries_from_cfg()

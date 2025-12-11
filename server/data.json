@@ -5,6 +5,13 @@
   },
   "history": [
     {
+      "id": 1765441466485,
+      "function": "SetREURindiv",
+      "input": "{\n  \"sequence_num\": 17,\n  \"function\": \"SetREURindiv\",\n  \"input_parameters\": {\n    \"REUR\": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],\n    \"REUR_defValues\": 0,\n    \"dateOfBirth\": 19690420,\n    \"direction\": 0,\n    \"mic\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 17,\n  \"function\": \"SetREURindiv\",\n  \"return\": 0,\n  \"output_parameters\": {}\n}",
+      "timestamp": "2025-12-11T08:24:26.485Z"
+    },
+    {
       "id": 1764641540828,
       "function": "GetREDDindiv9",
       "input": "{\n  \"function\": \"GetREDDindiv9\",\n  \"input_parameters\": {\n    \"REDD_defValues\": 0\n  },\n  \"sequence_num\": 46\n}",
@@ -21,9 +28,9 @@
     {
       "id": 1763453709878,
       "function": "CompressionRatio_NL2",
-      "input": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"input_parameters\": {\n    \"channels\": 18,\n    \"centreFreq\": [\n      0,\n      1,\n      2,\n      3,\n      4,\n      5,\n      6,\n      7,\n      8,\n      9,\n      10,\n      11,\n      12,\n      13,\n      14,\n      15,\n      16,\n17,\n18\n    ],\n    \"AC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"BC\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      999,\n      999,\n      999\n    ],\n    \"direction\": 0,\n    \"mic\": 0,\n    \"limiting\": 0,\n    \"ACother\": [\n      35,\n      45,\n      40,\n      40,\n      65,\n      70,\n      70,\n      65,\n      55\n    ],\n    \"noOfAids\": 0\n  }\n}",
-      "output": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"CR\": [\n      0,\n      2.5212566428604086,\n      2.5356490911599012,\n      2.5307486644592507,\n      2.6300828370502134,\n      2.752532549775378,\n      2.913689459913217,\n      2.6867161351010758,\n      2.4414156250527173,\n      2.218171679180946,\n      2.13829474236489,\n      2.049109431403679,\n      1.965768498130385,\n      2.056574583248216,\n      2.1183599493320573,\n      2.112888888639464,\n      1.9690587603359475,\n      1.818573560639152,\n      1.6457864885036464\n    ]\n  }\n}",
-      "timestamp": "2025-12-02T03:37:18.363Z"
+      "input": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"input_parameters\": {\n    \"channels\": 18,\n    \"centreFreq\": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],\n    \"AC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"BC\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 999.0, 999.0, 999.0],\n    \"direction\": 0,\n    \"mic\": 0,\n    \"limiting\": 0,\n    \"ACother\": [35.0, 45.0, 40.0, 40.0, 65.0, 70.0, 70.0, 65.0, 55.0],\n    \"noOfAids\": 0\n  }\n}\n",
+      "output": "{\n  \"sequence_num\": 22,\n  \"function\": \"CompressionRatio_NL2\",\n  \"return\": -1,\n  \"output_parameters\": {\n    \"error\": \"❌ 参数错误: centreFreq 长度应为 19，实际为 18\"\n  }\n}",
+      "timestamp": "2025-12-11T08:54:05.802Z"
     },
     {
       "id": 1763430693287,
@@ -191,14 +198,14 @@
       "function": "CompressionThreshold_NL2",
       "input": "{\n  \"sequence_num\": 21,\n  \"function\": \"CompressionThreshold_NL2\",\n  \"input_parameters\": {\n    \"bandWidth\": 0,\n    \"selection\": 1,\n    \"WBCT\": 52,\n    \"aidType\": 3,\n    \"direction\": 0,\n    \"mic\": 1,\n    \"calcCh\": [\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1,\n      1\n    ]\n  }\n}",
       "output": "{\n  \"sequence_num\": 21,\n  \"function\": \"CompressionThreshold_NL2\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"CT\": [\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52,\n      52\n    ]\n  }\n}",
-      "timestamp": "2025-12-01T07:27:00.794Z"
+      "timestamp": "2025-12-11T08:22:35.499Z"
     },
     {
       "id": 1763350108669,
       "function": "CenterFrequencies",
-      "input": "{\n  \"sequence_num\": 20,\n  \"function\": \"CenterFrequencies\",\n  \"input_parameters\": {\n    \"channels\": 18\n  }\n}",
-      "output": "{\n  \"sequence_num\": 20,\n  \"function\": \"CenterFrequencies\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"centreF\": [\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0,\n      0\n    ]\n  }\n}",
-      "timestamp": "2025-12-01T07:02:17.881Z"
+      "input": "{\n\"sequence_num\": 20,\n\"function\": \"CenterFrequencies\",\n\"input_parameters\": {\n  \"channels\": 18\n}\n}\n",
+      "output": "{\n  \"sequence_num\": 20,\n  \"function\": \"CenterFrequencies\",\n  \"return\": 0,\n  \"output_parameters\": {\n    \"centerF\": [\n      0,\n      1,\n      2,\n      3,\n      4,\n      5,\n      6,\n      7,\n      8,\n      9,\n      10,\n      11,\n      12,\n      13,\n      14,\n      15,\n      16,\n      17\n    ]\n  }\n}",
+      "timestamp": "2025-12-11T08:07:11.320Z"
     },
     {
       "id": 1763346828066,

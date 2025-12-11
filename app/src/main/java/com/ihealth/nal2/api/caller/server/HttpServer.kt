@@ -362,6 +362,15 @@ class HttpServer(private val context: Context, port: Int = 8080) : NanoHTTPD(por
                     val cr = DoubleArray(19)
                     val channels = params.get("channels").asInt
                     val centreFreq = jsonArrayToIntArray(params.getAsJsonArray("centreFreq"))
+                    
+                    // 校验 centreFreq 长度
+                    if (centreFreq.size != channels + 1) {
+                        val errorMsg = "❌ 参数错误: centreFreq 长度应为 ${channels + 1}，实际为 ${centreFreq.size}"
+                        onLog?.invoke("ERROR", errorMsg)
+                        result.addProperty("error", errorMsg)
+                        return result
+                    }
+                    
                     val ac = jsonArrayToDoubleArray(params.getAsJsonArray("AC"))
                     val bc = jsonArrayToDoubleArray(params.getAsJsonArray("BC"))
                     val acOther = jsonArrayToDoubleArray(params.getAsJsonArray("ACother"))
